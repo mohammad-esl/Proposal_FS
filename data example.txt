@@ -1,0 +1,79 @@
+{
+  "name": "Adjustable Sofa Side Table with Wheels, Mobile Tray Table Wooden End Table Dining Table Snack Table Laptop Desk for Sofa Couch Bed Living Room Bedroom, 31.5\" x 15.7\" Computer Desk, White-Upgrade",
+  "product_information": {
+    "Product Dimensions": "31.5 x 15.7 x 28.7 inches",
+    "Item Weight": "14.77 pounds",
+    "Manufacturer": "HOSAP",
+    "ASIN": "B096JCNHZW",
+    "Best Sellers Rank": [
+      "#3,935,909 in Home & Kitchen (See Top 100 in Home & Kitchen)   #4,224 in Sofa Tables"
+    ],
+    "Date First Available": "May 28, 2021"
+  },
+  "brand": "Brand: HOSAP",
+  "brand_url": "https://www.amazon.com/s/ref=bl_dp_s_web_0?ie=UTF8&search-alias=aps&field-keywords=HOSAP",
+  "full_description": "????? WHOLEHEARTEDLY WELCOME TO HOSAP ??????Our First Tenet: Customer First ?Our Shipping: We have warehouses in the US. Normally, you will receive your items within 47 business days.?Note:There may be a slight delay in delivery due to logistics or other irresistible factors. If you have any questions about our products, please feel free to contect us. We would like to solve the problem ASAP.??????????????????HOSAP Mobile Sofa Table is an ideal choice for studying, working, eating on sofa/couch or bed. It is practical, portable and easily stored. Maybe, it will be a choice you won't regret.?Feature:??100Percent brand new and high quality??Quantity:1pcs??Color: Black/White/Blue/Maple??Weight: 6700g??Material: Wood??Desktop size: 80cmx40cm(31.5inchx15.7inch)??Desktop lifting range: 55cm73cm(21.7inch28.7inch)?This product requires manual assembly, the required parts are included in the product, there are installation instructions, easy to operate.?Installation steps:1.Install the wheel with a wrench2.Secure the pull plate with 5x60 tip screws3.Install the elbow (fixed with plum short handle)4.Fix the desktop board with 6x35 flat head screws?Package Content:1pcxDesktop board1pcxPull board2pcxElbow2pcxSquare pin2pcxRound tube support rod2pcxPlum handle4pcxWith brake roller4pc 6x35 flat head screw4pc 6x50Tip screw",
+  "pricing": "",
+  "list_price": "",
+  "availability_status": "",
+  "images": [
+    "https://m.media-amazon.com/images/I/5131AMRzD8L.jpg",
+    "https://m.media-amazon.com/images/I/41-bpVKcfFS.jpg",
+    "https://m.media-amazon.com/images/I/41YBi-2mlnL.jpg",
+    "https://m.media-amazon.com/images/I/31ZBtojMG0S.jpg",
+    "https://m.media-amazon.com/images/I/21eA0q-bbsS.jpg",
+    "https://m.media-amazon.com/images/I/41ZdVzTE-nS.jpg",
+    "https://m.media-amazon.com/images/I/41KQ7vEEz+L.jpg",
+    "https://images-na.ssl-images-amazon.com/images/G/01/x-locale/common/transparent-pixel.gif"
+  ],
+  "product_category": "Home & Kitchen › Furniture › Living Room Furniture › Tables › End Tables",
+  "average_rating": "",
+  "small_description": "About this item\n \n❀♥ HEIGHT ADJUSTABLE: The height of this sofa end table is adjustable from 21.7 inches to 28.7inches. Works great to meet your different needs. ❀♥ RUGGED AND DURABLE: Crafted from high quality powder coated steel pipe with medium density fiberboard, the side table is anti-rust and sturdy enough that can firmly bear all your daily heavy things. ❀♥ VERSATILE END TABLE: Our adjustable computer desk is multi-purpose that can be used as simple dining table, tea table/coffee table, laptop table, studying desk, workstation, etc. beside your sofa & bed in your living room and bedroom. You can enjoy food, have a coffee, watch videos, read books, do home work and so on as you wishes. ❀♥ PORTABLE & LARGE TABLETOP: Our sofa table is compact and can be stored easily like leaning the wall or sliding into a corner without taking much space. The wheels allow the table to move freely, and each wheel has a brake that you can fix it in place when you use the couch end table. 31.5” L x 15.7” W desktop are large enough to put notebook, books, cup, etc. ❀♥ EASY TO ASSEMBLE: HOSAP Adjustable Sofa End Table, a very handy side table, is super easy to assemble in minutes according to the easy follow instruction.",
+  "total_reviews": "",
+  "total_answered_questions": "",
+  "customization_options": {
+    "Color": [
+      {
+        "is_selected": false,
+        "url": "https://www.amazon.com/dp/B095YVW9Y7/ref=twister_B095YX8Y1J?_encoding=UTF8&psc=1",
+        "value": "Black",
+        "price_string": "",
+        "price": 0,
+        "image": "https://m.media-amazon.com/images/I/518WAqJq1DL.jpg"
+      },
+      {
+        "is_selected": false,
+        "url": "https://www.amazon.com/dp/B096H9S93K/ref=twister_B095YX8Y1J?_encoding=UTF8&psc=1",
+        "value": "Blue",
+        "price_string": "",
+        "price": 0,
+        "image": "https://m.media-amazon.com/images/I/51VPlpArdlS.jpg"
+      },
+      {
+        "is_selected": false,
+        "url": "https://www.amazon.com/dp/B095YVNH36/ref=twister_B095YX8Y1J?_encoding=UTF8&psc=1",
+        "value": "Maple",
+        "price_string": "",
+        "price": 0,
+        "image": "https://m.media-amazon.com/images/I/51U0AMVkqaL.jpg"
+      },
+      {
+        "is_selected": true,
+        "url": null,
+        "value": "White",
+        "price_string": "",
+        "price": 0,
+        "image": "https://m.media-amazon.com/images/I/5131AMRzD8L.jpg"
+      }
+    ]
+  },
+  "seller_id": "",
+  "seller_name": "",
+  "fulfilled_by_amazon": "",
+  "fast_track_message": "",
+  "aplus_present": "",
+  "asin": "B096JCNHZW",
+  "category": "garden",
+  "query": "Sofa Tables",
+  "page": 171,
+}
