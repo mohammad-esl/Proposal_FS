@@ -1,0 +1,996 @@
+
+فرضیات نگارش پروپوزال
+۱. از آنجا که این محیط‌ها استاندارد تلقی می‌شوند، انتظار می‌رود تست و استفاده از آنها برای عامل‌های مختلف، امکان‌پذیر باشد.
+۲. متن‌باز بودن این پروژه‌ها، منجر به امکان تصرف آزادانه در آن‌ها خواهد شد.
+۳. امکان جای‌گذاری مجموعه داده‌ای واقعی از محیط سایت‌های واقعی فارسی (مانند دیجی‌کالا) در این محیط وجود دارد؟
+۴. 
+
+
+دانش بدست آمده از بررسی‌ها
+۱. دیتاست‌ها در هر دو محیط (X-WebAgentBench و WebShop) قابل دانلود هستند. فایل‌های دانلود شده تماما json هستند.
+۲.  محیط X-WebAgentBench این شکلیه
+
+یه ابهام که برای استاد پیش اومده بود، این بود که این محیط می‌تونه یه محیط وب‌سایت واقعی رو پشتیبانی کنه. یعنی میگفت بیا دیجی‌کالا رو بندازیم توی این. خب نمیشه عملا. شاید بشه فقط محصولات و ویژگی‌هاش رو بیاری ولی کل اجزای سایت رو نمیشه طبیعتا. 
+نکته بعدی: تفاوت‌های WebShop و X-Web
+در جدول زیر تفاوت‌های کلیدی آن‌ها به صورت خلاصه و مرتب آورده شده است:
+
+
+کارایی که X-WebAgentBench انجام داده:
+X-WebAgentBench: خلاصه دقیق
+هدف
+ساخت اولین بنچمارک تعاملی چندزبانه برای ارزیابی عامل‌های LLM در محیط وب خرید (مبتنی بر WebShop).
+
+ساختار بنچمارک
+۱۴ زبان، ۲۸۰۰ دستورالعمل (۲۰۰ تا برای هر زبان)، ۵۸۹٬۹۴۶ محصول
+دو بُعد ارزیابی: (۱) دستورالعمل چندزبانه (۲) محیط تعاملی چندزبانه
+معیار ارزیابی: Task Score (همان WebShop)
+۶ نوع اکشن: search, click item, click prev/next, click back, click attribute, click buy
+
+روش ساخت داده
+مرحله ۱ – آماده‌سازی:
+۵۰۰ دستورالعمل از مجموعه تست ReAct (زیرمجموعه WebShop) انتخاب شد
+دستورالعمل‌های مبهم (مثل «یک شارژر می‌خواهم») حذف شدند
+برای هر دستورالعمل، محصولات هم‌دسته از کل WebShop استخراج شد؛ میانگین ۲۱۱ محصول به ازای هر دستورالعمل
+مرحله ۲ – ترجمه دستورالعمل‌ها:
+ابتدا pre-validation: ۵۰ دستورالعمل به ۱۴ زبان با دو ابزار ترجمه شد و ۳ متخصص ارزیابی کردند
+نتیجه: Google Translate در همه زبان‌ها بالای ۹۰٪ دقت داشت؛ GPT-4 در زبان‌های کم‌منبع به طور میانگین تنها ۷۴٪
+انتخاب: Google Translate API برای ترجمه ۵۰۰ دستورالعمل به ۱۴ زبان
+مرحله ۳ – ترجمه محیط (محصولات):
+pre-validation مشابه، اما این بار GPT-4 بیش از ۱۵٪ بهتر از Google Translate بود (چون ترجمه محصولات نیاز به درک زمینه‌ای دارد: عنوان، توضیحات، دکمه‌ها، ویژگی‌ها)
+انتخاب: GPT-4 برای ترجمه محیط؛ داده‌ها به فرمت JSON یکپارچه تبدیل شدند
+مرحله ۴ – کنترل کیفیت:
+Onboarding test: مترجمان باید روی ۵۰ نمونه حداقل Task Score = 80 می‌گرفتند
+LLM Check: GPT-4-turbo ترجمه‌ها را از ۰ تا ۱۰ نمره داد؛ فقط نمره ≥۸ قبول شد → حدود ۲۵۰ دستورالعمل
+Manual Recheck: بازبینی دستی توسط حداقل دو نفر → نهایتاً ۲۰۰ دستورالعمل با کاپا = ۰.۸
+
+آزمایش‌ها
+پنج مدل ارزیابی شدند: GPT-4o، GPT-3.5-turbo، Qwen2-7B، Mistral-7B، Llama3-8B با چهار استراتژی: BaseAgent، Translate-en، Self-Translate-en، CLP.
+یافته‌های اصلی:
+فارسی در این بنچمارک وجود ندارد (۱۴ زبان شامل فارسی/اردو نمی‌شود — اردو هست، فارسی نه)
+حتی GPT-4o با CLP به نتایج رضایت‌بخش نرسید (AVG ~38)
+گلوگاه اصلی language alignment است، نه استدلال منطقی
+مدل‌ها هرگز به صورت خودکار از ابزار ترجمه استفاده نکردند (overconfidence)
+
+
+
+
+نحوه انجام تست
+
+باید یک نمونه از محیط درحال اجرا باشه. بعد URL اون محیط رو در فایل WebShopEnv.py تنظیم می‌کنیم.
+
+Read c:\Users\Mardavij\Desktop\X-WebAgentBench\Eval\model.py
+این مدل‌هایی که در پروژه واقعاً پیاده‌سازی شدن:
+و این دو تا پیاده‌سازی نشدن (فقط در main.py اسمشون هست):
+deepseek_v2 — اصلاً generator ندارد
+llama3 — فقط یه print می‌زند
+مدل‌های local هم در Eval/os_model.py هستن:
+Qwen2-7B-Instruct — نیاز به GPU
+Mistral-7B-Instruct-v0.3 — نیاز به GPU
+
+چی آماده‌ست:
+WebShop_test یه callable می‌گیره — هر تابعی که signature درست داشته باشه کار می‌کنه
+لازم نیست حتماً از model.py استفاده کنی
+چی باید اضافه کنی برای agent سفارشی:
+در Eval/main.py:53 یه elif اضافه کن:
+elif args.model == 'my_agent':
+    from my_agent import my_generator
+    test_model = WebShop_test(my_generator, saved_log_path)
+و فقط باید my_generator این signature رو داشته باشه (از WebShop_test.py استخراج شده):
+def my_generator(text, history=[], language='en', mode='direct'):
+    # text = observation فعلی محیط
+    # history = تاریخچه مکالمه
+    # باید برگردونی:
+    return "Thought: ...\nAction: search[...]", history
+خلاصه: بله، پروژه طوری طراحی شده که هر نوع agent — API، local، rule-based — رو بدون تغییر در منطق اصلی می‌توانی وصل کنی. فقط یه elif در main.py و یه تابع با همان signature کافیه.
+
+در مورد X-WebAgentBench حداقل این اطلاعات صحیح است
+ بله، ReAct است — یعنی هر گام یک Thought + Action تولید می‌کند و محیط جواب می‌دهد، نه یک توالی کنش یکجا.
+جریان دقیق در test_direct این‌طور است:
+reset → observation₀
+  ↓
+model(observation₀) → "Thought: ...\nAction: search[...]"
+  ↓
+env.step(search_action) → observation₁
+  ↓
+model(observation₁, history) → "Thought: ...\nAction: click[ASIN]"
+  ↓
+env.step(click) → observation₂
+  ↓
+model(observation₂, history) → "Thought: ...\nAction: click[Buy Now]"
+  ↓
+env.step → reward
+هر بار که model صدا زده می‌شود، history کامل مکالمه را دارد — پس مدل وضعیت قبلی را می‌بیند. این دقیقاً ReAct است: Reason → Act → Observe → Reason → ...
+یه نکته مهم از کد: مدل در هر گام فقط یک کنش برمی‌گرداند، نه یک توالی. تابع search_find_buy_item بازگشتی (recursive) است و هر بار یک کنش را execute می‌کند، بعد دوباره model را صدا می‌زند.
+
+
+تعیین کلید api جهت تست عامل در فایل model.py. امکان برنامه‌نویسی چارچوب در این فایل به سادگی امکان پذیر است.
+
+
+نتیجه اولین تست با مدل gpt-3
+عملکرد صفر.
+حداقل مکانیکز اجرای مدل رو یاد گرفتم.
+علت اینه که مدل GPT-3 نیست در ارائه‌دهنده خدمات که مهم نیست زیاد.
+این کد اجراست:
+python main.py --model gpt-4o-mini --method direct --language en --test_n 5
+فعلا برای تست از GapGPT api استفاده کردم.
+تقریبا همه مدل ها رو داره. بعدا لیست قیمت‌هاش رو میذارم توی FS که عدد هم گزارش کنم.
+دقیقاً همین‌طور است. در متد direct، فرآیند «استدلال به زبان طبیعی» (Natural Language Reasoning) کاملاً حذف یا به حداقل ممکن (در حد یک جمله‌ٔ فرمالیته) محدود می‌شود.
+مدل در هر مرحله شبیه به یک تابع ریاضی یا یک نگاشت مستقیم عمل می‌کند: «ورودی صفحه (Observation) ➔ خروجی کنش (Action)».
+خطای error model name. نشان می‌دهد که اسکریپت main.py یک لیست سخت‌گیرانه از نام مدل‌های مجاز دارد و نام gpt-4o-mini در آن تعریف نشده است. به همین دلیل متغیر test_model مقداردهی نمی‌شود و با خطای UnboundLocalError مواجه می‌شوید.
+
+نکته: خود محیط تعداد معدود و مشخصی از مدل‌ها برای تست داره. نشان از استاندارد بودن آزمایش.
+
+
+
+برای انجام یک تسک با GPT-4o حدود ۳۰ سنت مصرف شد. نتیجه هم نگرفت.
+
+اما مشخص است که مدل داره تعامل با صفحه و تفکر رو به خوبی انجام میده. هزینه این مدل یکم زیاده. 
+تحلیل خطا:
+بررسی دقیق فایل log.json چند باگ ظریف دیگر را در لایهٔ تعامل مدل با بنچمارک آشکار می‌کند که مستقیماً روی رفتار مدل اثر گذاشته‌اند: 
+۱. باگ عدم تغییر شماره صفحه در وب‌شاپ
+اگر به لاگ صفحات ۲ به بعد دقت کنید، یک ناهماهنگی بزرگ در محیط بنچمارک دیده می‌شود: 
+در صفحه ۲، کلیدهای موجود در بخش اکشن‌ها شامل ['Back to Search', '< Prev', 'Next >', ...] هستند. 
+مدل اکشن click[Next >] را انتخاب می‌کند تا به صفحه ۳ برود. 
+اما در صفحه ۳، لیست محصولات کاملاً خالی است و فقط دکمه‌های ناوبری وجود دارند. مدل مجبور می‌شود به صفحه جستجو بازگردد. 
+وقتی مدل دوباره با کلمات جدید جستجو می‌کند و به صفحه ۲ می‌رسد، محصولات تغییر می‌کنند (لباس‌های ورزشی ظاهر می‌شوند)، اما با زدن مجدد click[Next >]، از صفحه ۳ به بعد تا صفحه ۱۰، لیست محصولات دقیقاً روی همان آیتم‌های ثابت (شلوارهای جفت، ملحفه‌ها و تخت‌خواب‌ها) قفل می‌شود! این نشان می‌دهد که موتور جستجوی وب‌شاپ در متد direct نتوانسته صفحات بالاتر از ۲ را به درستی برای این سرور واسط جنریت یا صفحه‌بندی کند. 
+۲. پدیده تعمیم افراطی کلمات کلیدی (Keyword Over-Generalization)
+مدل هوش مصنوعی در گام پنجم، استراتژی خود را تغییر داده و کلمات توصیفی را به جستجو اضافه می‌کند: search[JE-04B earbuds stereo sound comfortable under 70]. در موتورهای جستجوی ضعیف (مانند نسخه پیش‌فرض وب‌شاپ)، اضافه کردن کلماتی مثل comfortable (راحت) یا under (زیرِ) به جای فیلتر کردن، دامنه‌ی جستجو را به شدت گسترش می‌دهد. به همین دلیل سیستم کلمه هدفون را رها کرده و هر کالایی که در توضیحاتش کلمه "Comfort" یا "Under" (مانند برند Under Armour) به کار رفته را لود می‌کند. 
+۳. تضعیف توجه مدل در گام دهم (Context Fatigue)
+مدل gpt-4o ده مرحلهٔ طولانی، تاریخچهٔ تمام صفحات قبلی را همراه با لیست بلندبالایی از دکمه‌های قابل کلیک (Available Actions) در پرامپت خود دریافت کرده است. طولانی شدن این تاریخچه (پایپ‌لاین طولانی متن) در گام دهم باعث شده مدل ساختار اولیه پرامپت (پاسخ در قالب Thought و Action) را فراموش کند و صرفاً کلمه تک‌کلمه‌ای Error را خروجی دهد که منجر به کرش نهایی پارسر پروژه شده است. 
+
+تصورت اشتباهه
+بنچمارک endpoint نمی‌دهد. یعنی نمی‌تونی یه HTTP request بزنی و جواب بگیری. معماری این‌طوریه:
+Flask server (محیط خرید)
+       ↑ HTTP requests
+WebShopEnv.py  ←  این واسط بین agent و سرور است
+       ↑ Python function call
+WebShop_test.py  ←  این حلقه ارزیابی را اجرا می‌کند
+       ↑ function call
+model.py  ←  اینجا agent تو قرار می‌گیرد
+
+برای وصل کردن agent خودت، فقط دو فایل لازم است
+گام ۱ — یه فایل جدید بساز، مثلاً Eval/my_agent.py:
+def my_generator(text, history=[], language='en', mode='direct'):
+    # text = observation فعلی (متن صفحه + کنش‌های قابل کلیک)
+    # history = تاریخچه کامل مکالمه تا اینجا
+    # mode = 'direct' | 'translate' | 'translate_en' | 'clp'
+
+    # معماری هر چی دلت بخواد اینجا
+    response = "Thought: ...\nAction: search[running shoes]"
+    
+    history.append({"role": "user", "content": text})
+    history.append({"role": "assistant", "content": response})
+    return response, history
+گام ۲ — در Eval/main.py:53 یه elif اضافه کن:
+elif args.model == 'my_agent':
+    from my_agent import my_generator
+    test_model = WebShop_test(my_generator, saved_log_path)
+اجرا:
+python main.py --model my_agent --method direct --language en --test_n 10
+
+چی به generator می‌رسد
+text که به تابعت می‌رسد این شکلیه (خروجی get_clickable_actions در Eval/WebShop_test.py:55):
+Observation:
+Instruction: i want to buy a red running shoe under $50
+[Search]
+
+Available Actions:
+{'has_search_bar': True, 'clickables': "['Search']"}
+یا بعد از search:
+Observation:
+[Back to Search]
+Page 1 (Total results: 50)
+[B07XYZ] Nike Running Shoe 
+[B08ABC] Adidas Runner ...
+[< Prev] [Next >]
+
+Available Actions:
+{'has_search_bar': False, 'clickables': "['Back to Search', 'B07XYZ', ...]"}
+
+خلاصه تغییرات
+
+
+بله، پرامپت ویژه دارد. تابع اصلی get_base_prompt در Eval/WebShop_prompt.py:80 است.
+پرامپت system (یک‌بار ابتدای مکالمه):
+مدل را در نقش یه خریدار وب قرار می‌دهد و دقیقاً توضیح می‌دهد چه کنش‌هایی مجاز است:
+You are web shopping. I will give you instructions about what to do.
+Every round I will give you an observation and a list of available actions...
+
+search[<keyword>]
+click[Prev]/click[Next]
+click[Back to Search]
+click[<item id>]
+click[<attribute>]
+click[Buy Now]
+
+Your response should use the following format:
+Thought: I think ...
+Action: click[<something>]
+نکات مهم:
+کلمات search و click در پرامپت زبان‌محور هستند — برای فارسی/عربی/چینی با کلمه همان زبان جایگزین می‌شوند
+مثال‌های داخل پرامپت هم (earphone، black) بسته به زبان ترجمه‌شده‌اند
+هیچ chain-of-thought پیچیده‌ای ندارد — فقط یه Thought: I think ... ساده
+پرامپت CLP فرق دارد — دو مرحله جداست:
+get_clp_1_prompt: بفهم observation را قدم‌به‌قدم به انگلیسی توضیح بده (بدون Action)
+get_clp_2_prompt: حالا با آن فهم، Action را به زبان هدف تولید کن
+یعنی baseline پروژه هیچ معماری پیچیده‌ای ندارد — فقط یه system prompt ساده + ReAct تک‌مرحله‌ای است.
+
+پرامپت CLP چیه؟
+از کد همان فایل که خواندیم:
+CLP = Cross-Lingual Prompting
+دو مرحله دارد:
+مرحله ۱ (get_clp_1_prompt) — فهمیدن:
+Please act as an expert in multi-lingual understanding in [زبان].
+You need fully understand every words, and explain its effection.
+Don't response the Action, it is next step task.
+Let's understand the observation in English step-by-step!
+[observation]
+مدل observation را به انگلیسی تحلیل می‌کند، ولی Action نمی‌دهد.
+مرحله ۲ (get_clp_2_prompt) — عمل کردن:
+After understanding, you should act as an expert in reasoning in English.
+In the end, you should response Action in [زبان] according previously understood observation.
+Previous Action: [کنش قبلی]
+[base_prompt]
+حالا با آن فهم قبلی در history، Action تولید می‌کند.
+
+ایده اصلی: مدل‌های زبانی در زبان‌های غیرانگلیسی ضعیف‌تر استدلال می‌کنند. CLP می‌گوید: اول به انگلیسی بفهم، بعد به زبان هدف عمل کن. این یه نوع chain-of-thought cross-lingual است.
+در کد (Eval/WebShop_test.py:383) هر گام دو بار model صدا زده می‌شود:
+alignment, history = self.model(observation, history=[], language=language, mode='clp')  # 
+مرحله ۱
+action, history = self.model(get_clp_2_prompt(prev_action, language), history=history, language=language)  # 
+مرحله ۲
+حالا با دیتای واقعی جواب دقیق:
+
+items_ins — synthetic، ساختار dict:
+"B09Q9561S6": {
+  "attributes": ["yoga pants", "butt lifting", "tummy control", ...],
+  "instruction": "Find me butt lifting women's pants with tummy control, high waist",
+  "instruction_attributes": ["butt lifting", "tummy control", "high waist"]
+}
+instruction ماشینی و فرمولیک است: "Find me X, Y with Z"
+فیلد options ندارد
+کلید: asin → object
+
+items_human_ins — human، ساختار dict of list:
+"B015R09D8M": [
+  {
+    "instruction": "i need a 9.5 rubber soled hiking shoe made of light weight vinyl acetate.",
+    "instruction_attributes": ["light weight", "vinyl acetate", "rubber sole"],
+    "instruction_options": ["9.5"],
+    "options": ["size: 9.5"],
+    "worker_id": "A1WS884SI0SLO4",
+    "assignment_id": "3S06PH7KS2ESBN3H7VP59DC9HUZ1DI"
+  }
+]
+instruction طبیعی و محاوره‌ای است: "i need a 9.5 rubber soled..."
+فیلد instruction_options دارد (size/color که باید انتخاب شود)
+یه محصول می‌تواند چند instruction داشته باشد (list)
+worker_id و assignment_id نشان می‌دهد MTurk کارگران واقعی نوشته‌اند
+
+تفاوت کلیدی: human_ins واقعی‌تر است، گزینه‌های محصول (size/color) را هم شامل می‌شود، و هر محصول چند نمونه دارد. synthetic فقط attribute دارد و یک دستورالعمل ماشینی. پروژه پیش‌فرض از human استفاده می‌کند.
+
+اربرد و هدف از وجود هر کدوم چیه؟
+از آنچه در کد دیدیم:
+items_ins (synthetic) هدفش پوشش گسترده است. چون به صورت خودکار با TF-IDF روی همه ۴۰ هزار محصول تولید شده، برای هر محصول یه instruction دارد. برای اینکه بخوای روی dataset بزرگ benchmark بگیری یا مدل را train کنی کاربرد دارد.
+items_human_ins (human) هدفش ارزیابی واقعی‌تر است. دستورالعمل‌ها را MTurk workers نوشتند — جملات طبیعی‌اند، گزینه‌های size/color هم دارند، و یه محصول می‌تواند چند instruction مختلف داشته باشد. این یعنی task واقعاً شبیه رفتار کاربر واقعی است.
+تفاوت مهم‌تر در reward است. در goal.py وقتی human_goals=True، فیلد instruction_options هم وارد محاسبه می‌شود — یعنی اگر agent سایز اشتباه انتخاب کند امتیاز کم می‌شود. در synthetic این فیلد وجود ندارد و فقط attribute بررسی می‌شود.
+خلاصه: synthetic برای scale، human برای کیفیت ارزیابی. benchmark اصلی پروژه روی human_ins است.
+
+دیتا از آمازون scrape شده، نه تولیدشده. شواهد مستقیم از داخل فایل:
+brand_url: آدرس کامل amazon.com
+images: لینک‌های m.media-amazon.com
+customization_options → url: لینک‌های amazon.com/dp/...
+ASIN: شناسه محصول آمازون
+product_category: دسته‌بندی آمازون (Clothing, Shoes & Jewelry › Women › ...)
+فیلد page: شماره صفحه‌ای که محصول از آمازون scrape شده
+چی این پروژه اضافه کرده:
+ترجمه محتوا به ۱۵ زبان → فایل‌های items_shuffle_40k_{lang}.json
+تولید items_ins با TF-IDF روی همین دیتا
+annotation انسانی در items_human_ins از طریق MTurk
+یعنی محصولات واقعی آمازون هستند، ولی task (دستورالعمل خرید) و annotation را خود این پروژه ساخته.
+
+خب حالا سوالات من در مورد اینکه عامل baseline پروژه چیه و چطور عمل میکنه، دقت‌های گزارش شده در مقاله رو بر مبنای کدوم مدل حساب کردند، دیتای این پروژه آیا از WebShop نمونه برداری شده یا خودش تولید شده و سوالات دیگه‌ای که قبلا پرسیدم رو هم باتوجه به مقاله‌ای که الان ارسال کردم و هم با توجه به کد بهم بگو. یعنی اطلاعات مقاله رو ارجح بدون و صرفا کدها جهت بررسی سازگاری هست.
+با توجه به مقاله، حالا می‌تونم جواب‌های دقیق‌تر و مستندتری بدم. اطلاعات مقاله را مبنا گرفتم و کد را فقط برای تطبیق بررسی کردم.
+۱. عامل baseline چیه و چطور عمل می‌کنه؟
+طبق مقاله (بخش ۳.۲) عامل پایه BaseAgent نام دارد و برگرفته از AgentBench (Liu et al., 2024a) است. روی این عامل پایه، چهار استراتژی اعمال می‌شود:
+BaseAgent (direct): عامل مستقیماً به زبان محلی با محیط تعامل می‌کند
+Translate-en: محیط با Google Translate به انگلیسی ترجمه می‌شود
+Self-Translate-en: خود LLM محیط را به انگلیسی ترجمه می‌کند
+CLP: هم‌ترازی زبانی دو مرحله‌ای (اول فهم، بعد عمل)
+نحوه عملکرد (ReAct): طبق Appendix E مقاله، فرمت پاسخ دقیقاً این است:
+Thought: < I think... >
+Action: <click[something]>
+یعنی هر دور، محیط یک observation + لیست اکشن‌های مجاز می‌دهد، و عامل یک Thought + یک Action برمی‌گرداند. این تأیید همان چیزی است که قبلاً از کد فهمیدیم (الگوی بازگشتی، یک اکشن در هر قدم). نکته مهم از Figure 9: در BaseAgent/Translate/Self-Translate عامل کل history را می‌بیند، ولی در CLP عامل history را نمی‌بیند و فقط اکشن قبلی به‌عنوان مرجع داده می‌شود — این هم دقیقاً با کد WebShop_test.py سازگار است (در CLP دو بار مدل با history=[] صدا زده می‌شود).
+شش اکشن مجاز (Table 6): search[keyword]، click[prev/next]، click[back]، click[item id]، click[attribute]، click[buy].
+۲. دقت‌های گزارش‌شده مقاله بر مبنای کدوم مدل‌هاست؟
+طبق بخش ۳.۱، پنج LLM ارزیابی شده‌اند:
+نکته کلیدی مقاله: حتی GPT-4o + CLP (بهترین نتیجه) فقط به ۳۷.۹۴ می‌رسد — یعنی هیچ مدلی به نتیجه رضایت‌بخش نمی‌رسد و فاصله با انگلیسی (۵۳-۶۵) زیاد است.
+تطبیق با کد: در main.py همین مدل‌ها هستند (gpt-3.5-turbo, gpt-4o, qwen2, mistral, llama3). علاوه بر این، در کد دو مدل اضافی پیاده‌سازی شده که در جدول اصلی مقاله نیستند بلکه در Appendix G آمده‌اند: deepseek-reasoner و qwq — مربوط به آزمایش «مدل‌های استدلالی» (Table 7).
+۳. دیتا از WebShop نمونه‌برداری شده یا خودش تولید کرده؟
+این سؤال حالا با مقاله قطعی پاسخ داده می‌شود — و جالب است که جواب کامل‌تر از تخمین قبلی ما (Amazon) است:
+طبق Appendix I (Ethical Considerations):
+"We obtained our data from the Webshop, which is open-source and freely accessible for academic research."
+و طبق Appendix A:
+"Our instructions come from the test items in ReAct. The test instructions of ReAct are randomly selected instructions from the original WebShop. Then we find the corresponding 500 products according to the instructions."
+پس زنجیره دقیق این است:
+Amazon → WebShop (Yao et al. 2022) → ReAct test set → X-WebAgentBench
+یعنی:
+محصولات در اصل از Amazon اسکرپ شدند (همان چیزی که ما در فایل JSON دیدیم: ASINها، لینک‌های amazon.com و media-amazon.com) — اما خود این پروژه آن را اسکرپ نکرده، بلکه از دیتاست آماده WebShop برداشته است.
+دستورالعمل‌ها (instructions): ۵۰۰ دستور از مجموعه تست ReAct (که خودش زیرمجموعه‌ای از ۱۲,۰۸۷ دستور WebShop است) انتخاب شده، دستورات مبهم حذف شده.
+محصولات محیط: برای هر دستور، محصولات هم‌دسته از WebShop استخراج شده (میانگین ۲۱۱ محصول به ازای هر دستور، برای کوتاه نگه‌داشتن context).
+کاری که خود پروژه تولید کرده:
+ترجمه دستورات به ۱۴ زبان با Google Translate → ۲,۸۰۰ دستور (۲۰۰ × ۱۴)
+ترجمه محیط با GPT-4 → ۵۸۹,۹۴۶ محصول چندزبانه
+کنترل کیفیت سه‌مرحله‌ای (Onboarding test، LLM Check با GPT-4-turbo، Manual Recheck با kappa=0.8، ۴۲ متخصص)
+پس جمع‌بندی اصلاح‌شده نسبت به پاسخ قبلی: دیتای پایه از WebShop گرفته شده (نه مستقیم از Amazon و نه تولید مستقل)، و سهم اصلی این پروژه «چندزبانه‌سازی + کنترل کیفیت» است.
+۴. تکمیل سوالات قبلی با استناد به مقاله
+درباره items_ins و items_human_ins: مقاله مستقیماً این دو فایل را نام نمی‌برد، ولی منطق‌شان را روشن می‌کند. دستوراتِ benchmark «حاوی گزینه/option» هستند (مثل سایز ۹.۵) که با نوع human_ins (دارای instruction_options) همخوانی دارد. این همان دستورات انتخابی از ReAct/WebShop‌اند. فایل items_ins (تولیدشده با TF-IDF در generate_attrs.py) بیشتر زیرساخت تولید attribute است.
+چرا CLP با وجود پیچیدگی، بهترین نتیجه را برای GPT می‌دهد؟ طبق بخش ۳.۳ و ۵.۵: گلوگاه اصلی benchmark هم‌ترازی زبانی است نه استدلال پیچیده (DeepSeek-R1 با وجود قدرت استدلال، هم‌سطح GPT-4o و زیر ۵۰ می‌ماند). برای همین CLP که مستقیماً روی فهم زبانی کار می‌کند، فقط در مدل‌های قوی چندزبانه (سری GPT) جواب می‌دهد و در مدل‌های ضعیف کوچک‌تر کاملاً شکست می‌خورد (Llama3 + CLP = 0.12).
+اگر بخواهی، می‌تونم بخش‌های خاصی از کد را با ادعاهای مقاله (مثلاً limit جستجو یا منطق reward) یک‌به‌یک تطبیق بدهم.
+
+طبق مقاله، هر دو سؤال جواب صریح دارند:
+۱. ابزار ترجمه دیتا به زبان‌های دیگر
+مقاله دو ابزار متفاوت برای دو نوع داده به کار برده — و این انتخاب عمدی و بر اساس آزمایش pre-validation بوده:
+دستورالعمل‌ها (instructions) → Google Translate API
+طبق بخش ۲.۲: ابتدا ۵۰ دستور انگلیسی را با هر دو ابزار (GPT-4 و Google Translate) ترجمه و دستی ارزیابی کردند. نتیجه:
+Google Translate: دقت بالای ۹۰٪ در همه زبان‌ها
+GPT-4: در زبان‌های پرمنبع خوب، ولی در کم‌منبع ناپایدار (میانگین فقط ۷۴٪)
+به همین دلیل برای ترجمه ۲,۸۰۰ دستور از Google Translate API استفاده شد.
+محیط (environment / محصولات) → GPT-4
+طبق بخش ۲.۳: برای داده محیط (عنوان‌ها، دسته‌بندی‌ها، دکمه‌ها، نام محصول، توضیحات کامل و کوتاه، گزینه‌های سفارشی‌سازی) دوباره pre-validation کردند، ولی این‌بار نتیجه برعکس شد:
+"GPT-4 significantly outperforms other tools, even achieving over 15% higher human annotation accuracy by capturing contextual nuances..."
+به همین دلیل کل داده محیط (۵۸۹,۹۴۶ محصول) با GPT-4 ترجمه شد.
+پس خلاصه: دستورات با Google Translate، محیط با GPT-4. دلیل تفاوت: دستورات کوتاه و ساده‌اند (ترجمه ماشینی کافی است)، ولی محصولات پر از ظرافت معنایی و اصطلاحات تخصصی‌اند که GPT-4 بهتر می‌گیرد.
+نکته تکمیلی: در مرحله کنترل کیفیت (بخش ۲.۴) از GPT-4-turbo هم برای امتیازدهی به کیفیت ترجمه (۰ تا ۱۰، آستانه ۸) استفاده شده.
+۲. دستورالعمل‌ها برداشته شده‌اند یا تولید شده؟
+برداشته شده‌اند — تولید نشده‌اند. زنجیره دقیق طبق Appendix A:
+"Our instructions come from the test items in ReAct. The test instructions of ReAct are randomly selected instructions from the original WebShop."
+یعنی:
+WebShop (۱۲,۰۸۷ دستور) → ReAct test set → انتخاب ۵۰۰ دستور → X-WebAgentBench
+نقش این پروژه روی دستورات صرفاً انتخاب و پالایش بوده، نه تولید:
+از مجموعه تست ReAct، ۵۰۰ دستور informative انتخاب شد (بخش ۲.۱)
+دستورات مبهم دستی حذف شدند (مثال خود مقاله: «I need a charger» حذف شد چون محصول مشخصی را تعریف نمی‌کند)
+سپس برای هر دستور، محصولات متناظر از WebShop پیدا شد
+بعد از کنترل کیفیت، به ۲۰۰ دستور نهایی برای هر زبان رسیدند (LLM Check + Manual Recheck)
+پس دستورات اصلی انسان‌نوشته هستند (در اصل از کارگران MTurk در WebShop) — همان چیزی که قبلاً در فایل items_human_ins با فیلدهای worker_id و assignment_id دیدیم. تنها چیزی که این پروژه «تولید» کرده، نسخه‌های ترجمه‌شده آن‌ها به ۱۴ زبان است، نه خودِ متن دستورات.
+
+نکته کلیدی: دستورالعمل‌های ماشینی بخشی از benchmark مقاله نیستند
+مقاله X-WebAgentBench فقط از دستورات انسانی (همان ۵۰۰→۲۰۰ دستور MTurk از ReAct/WebShop) استفاده می‌کند. دستورالعمل‌های ماشینی (items_ins) و کد generate_attrs.py بخشی از زیرساخت ارثی WebShop هستند که در ریپازیتوری باقی مانده، نه چیزی که در ارزیابی‌های جدول‌های مقاله نقش داشته باشد.
+به‌عبارت دیگر: این کد از پروژه اصلی WebShop کپی شده و در این repo حضور دارد، ولی benchmark چندزبانه روی آن سوار نشده.
+کاربرد دستورالعمل‌های ماشینی
+در طراحی اصلی WebShop، دو نوع دستور وجود دارد و هدف‌شان فرق می‌کند:
+دستورات انسانی (human_ins): باکیفیت ولی گران و محدود (نیاز به کارگر MTurk). برای ارزیابی نهایی استفاده می‌شوند.
+دستورات ماشینی (items_ins): ارزان و مقیاس‌پذیر. چون به‌صورت خودکار از روی هر محصول ساخته می‌شوند، می‌توان ده‌ها هزار دستور تولید کرد. کاربرد اصلی‌شان آموزش/pre-training عامل (مثلاً imitation learning یا RL) و پوشش‌دادن همه محصولات است، نه ارزیابی دقیق.
+پس تقسیم کار: ماشینی برای حجم و آموزش، انسانی برای کیفیت و ارزیابی.
+روش تولید (طبق کد generate_attrs.py)
+این‌ها تولید شده‌اند، نه برداشته‌شده از منبع قبلی — البته با یک الگوریتم، نه دستی:
+۱. استخراج attribute با TF-IDF: روی متن هر محصول (name + small_description) و به‌تفکیک دسته‌بندی، TF-IDF اجرا می‌شود (هم unigram هم bigram، ngram_range از ۱ تا ۲، حداکثر ۱۰۰۰ feature). کلمات/عبارت‌هایی که بالاترین امتیاز TF-IDF را دارند، به‌عنوان «ویژگی شاخص» آن محصول انتخاب می‌شوند (k=5 برتر).
+۲. حذف stop words: هم stop word‌های استاندارد انگلیسی و هم اعداد ۰ تا ۹۹۹ فیلتر می‌شوند تا attributeها معنادار بمانند.
+۳. ساخت instruction از attributeها: همان‌طور که در ساختار items_ins دیدیم، دستور از کنار هم گذاشتن این attributeهای استخراج‌شده ساخته می‌شود (مثلاً "Find me butt lifting women's pants with tummy control, high waist" که instruction_attributes آن همان عبارات TF-IDF است).
+پس منبع محتوا خودِ متن محصولات WebShop است، ولی خود جملهٔ دستور به‌صورت الگوریتمی تولید شده — برخلاف دستورات انسانی که عیناً از MTurk برداشته شده‌اند.
+جمع‌بندی تمایز
+اگر بخواهی می‌تونم دقیقاً بررسی کنم که آیا فایل خروجی items_ins در کد Eval (مسیر ارزیابی) جایی import/خوانده می‌شود یا نه، تا این «استفاده‌نشده بودن» را به‌طور قطعی از روی کد تأیید کنیم.
+
+ReAct
+سلام. مقاله رو خوندم. حالا برای اینکه جواب‌ها دقیق و مبتنی بر کد واقعی باشه (نه فقط مقاله)، بذار فایل‌های اصلی کد رو بخونم.
+Read c:\Users\Mardavij\Desktop\ReAct\wrappers.py
+Read c:\Users\Mardavij\Desktop\ReAct\wikienv.py
+حالا notebook عامل پایه رو می‌بینم تا کد واقعی عامل مرجع رو نقل کنم.
+Read c:\Users\Mardavij\Desktop\ReAct\hotpotqa.ipynb
+حالا کد رو کامل دیدم. جواب دو سؤالت با تکیه بر مقاله و سپس کد واقعی این ریپو:
+<div dir="rtl">
+۱. دیتای مقاله از کجا می‌آید؟ نمونه‌برداری شده یا تولید شده؟
+پاسخ کوتاه: هر دو — بسته به اینکه به کدام بخش دیتا اشاره داری. در ReAct دو نوع «دیتا» داریم که نباید با هم قاطی شوند:
+الف) دیتای ارزیابی (سؤال‌ها/ادعاها) → نمونه‌برداری شده
+این‌ها تولید نمی‌شوند، بلکه از دیتاست‌های آماده و منتشرشده‌ی علمی نمونه‌برداری می‌شوند:
+روش نمونه‌برداری (طبق مقاله، Appendix A.1 و بخش ۳):
+HotpotQA و FEVER: یک زیرمجموعه‌ی تصادفی ۵۰۰ تایی از مجموعه‌ی validation/dev انتخاب می‌شود
+ALFWorld: نمونه‌برداری نیست؛ از تمام ۱۳۴ بازی unseen استفاده می‌شود
+WebShop: روی ۵۰۰ دستور تست ارزیابی می‌شود
+این نمونه‌برداری دقیقاً در کد این ریپو پیاده شده. در hotpotqa.ipynb سلول آخر:
+</div>
+idxs = list(range(7405))
+random.Random(233).shuffle(idxs)   # بُر زدن قطعی با seed=233
+...
+for i in idxs[:500]:               # ۵۰۰ نمونه اول
+    r, info = webthink(i, to_print=True)
+<div dir="rtl">
+پس «نمونه‌برداری» در عمل یعنی: شماره‌ی همه‌ی ۷۴۰۵ سؤال dev را با بذر ثابت 233 به‌هم می‌ریزند و ۵۰۰ تای اول را برمی‌دارند. بذر ثابت → نتیجه‌ی قابل‌بازتولید (هر بار همان ۵۰۰ سؤال).
+ب) دیتای few-shot prompt (نمونه‌های نمایشی) → تولید شده (دستی، توسط انسان)
+این بخشی است که مقاله روی آن تأکید دارد و در بخش ۳.۲ توضیح داده:
+«For HotpotQA and Fever, we randomly select 6 and 3 cases from the training set and manually compose ReAct-format trajectories.»
+یعنی:
+چند نمونه (۶ تا برای HotpotQA، ۳ تا برای FEVER) به‌صورت تصادفی از مجموعه‌ی train انتخاب می‌شوند
+سپس یک انسان (annotator) به‌صورت دستی مسیر Thought-Action-Observation را برای آن‌ها می‌نویسد
+این مسیرها به‌عنوان exemplar در prompt قرار می‌گیرند
+پاورقی مهم مقاله: «We find more examples do not improve performance» — بیشتر از این تعداد بهبودی نمی‌دهد.
+در کد، این مسیرهای دستی‌نوشته‌شده در prompts/prompts_naive.json ذخیره شده‌اند و در notebook این‌طور بارگذاری می‌شوند:
+</div>
+webthink_examples = prompt_dict['webthink_simple6']   # ۶ نمونه دستی ReAct
+webthink_prompt = instruction + webthink_examples
+<div dir="rtl">
+جمع‌بندی سؤال ۱:
+سؤال‌های ارزیابی → نمونه‌برداری تصادفی با بذر ثابت از دیتاست‌های موجود (تولید نمی‌شوند)
+نمونه‌های few-shot → از train نمونه‌برداری می‌شوند، ولی مسیر استدلالشان توسط انسان تولید/نوشته می‌شود
+مشاهدات (Observations) هم تولید نمی‌شوند بلکه زنده از API ویکی‌پدیا گرفته می‌شوند (wikienv.py خط ۱۰۰ به بعد)
+</div>
+
+<div dir="rtl">
+۲. عامل پایه چطور کار می‌کند؟ چه مدل‌هایی در آن تعریف شده؟
+اینجا «مدل» دو معنا دارد: (الف) مدل‌های زبانی استفاده‌شده، (ب) روش‌های prompting (baselineها). هر دو را توضیح می‌دهم.
+الف) مدل‌های زبانی تعریف‌شده در مقاله
+نکته‌ی مهم: عامل یادگیری/آموزش نمی‌بیند (در حالت اصلی). مدل منجمد (frozen) است و فقط با few-shot prompting کار می‌کند. این کلید کار است: با ۱ تا ۶ مثال، از روش‌های imitation/RL که با ۱۰³ تا ۱۰⁵ نمونه آموزش دیده‌اند بهتر عمل می‌کند.
+در کد این ریپو فقط GPT-3 text-davinci-002 پیاده شده (hotpotqa.ipynb سلول ۱):
+</div>
+def llm(prompt, stop=["\n"]):
+    response = openai.Completion.create(
+      model="text-davinci-002",
+      prompt=prompt,
+      temperature=0,        # قطعی (deterministic) → همان greedy decoding مقاله
+      max_tokens=100,       # حداکثر ۱۰۰ توکن در هر گام
+      top_p=1,
+      frequency_penalty=0.0,
+      presence_penalty=0.0,
+      stop=stop
+    )
+    return response["choices"][0]["text"]
+<div dir="rtl">
+ب) روش‌های prompting (عامل‌ها/baselineها)
+مقاله (بخش ۳.۲) عامل ReAct را با چند baseline که از ablation کردن خود ReAct ساخته شده‌اند مقایسه می‌کند:
+چطور عامل پایه (ReAct) کار می‌کند — مبتنی بر مقاله + کد
+مقاله (بخش ۲) فضای عمل را این‌طور تعریف می‌کند:
+فضای عمل را به Â = A ∪ L گسترش می‌دهیم، که L فضای زبان است. یک عمل در فضای زبان (یک «thought») محیط را تغییر نمی‌دهد و observation برنمی‌گرداند؛ فقط context را به‌روز می‌کند.
+سه عمل واقعی روی ویکی‌پدیا (بخش ۳.۱)، که دقیقاً در wikienv.py:124-160 پیاده شده:
+</div>
+if action.startswith("search[")  ...   # ۵ جمله اول صفحه ویکی یا ۵ موجودیت مشابه
+elif action.startswith("lookup[") ...   # جمله‌ی بعدی حاوی کلیدواژه (شبیه Ctrl+F)
+elif action.startswith("finish[") ...   # پایان + ثبت پاسخ
+elif action.startswith("think[")  ...   # فقط می‌گوید "Nice thought." — محیط تغییر نمی‌کند
+<div dir="rtl">
+توجه: think[...] همان «thought» مقاله است — observation معنادار برنمی‌گرداند (فقط "Nice thought.")، که دقیقاً منطبق بر تعریف نظری L در مقاله است.
+حلقه‌ی اصلی عامل پایه — تابع webthink
+این حلقه در hotpotqa.ipynb قلب عامل پایه است:
+</div>
+def webthink(idx=None, prompt=webthink_prompt, to_print=True):
+    question = env.reset(idx=idx)          # ۱. لود سؤال
+    prompt += question + "\n"
+    for i in range(1, 8):                   # ۲. حداکثر ۷ گام (مطابق مقاله: 7 steps for HotpotQA)
+        # تولید Thought و Action با هم، توقف قبل از Observation
+        thought_action = llm(prompt + f"Thought {i}:", stop=[f"\nObservation {i}:"])
+        try:
+            thought, action = thought_action.strip().split(f"\nAction {i}: ")
+        except:                             # ۳. اگر مدل بد فرمت داد، فقط Action را دوباره بگیر
+            n_badcalls += 1
+            thought = thought_action.strip().split('\n')[0]
+            action = llm(prompt + f"Thought {i}: {thought}\nAction {i}:", stop=[f"\n"]).strip()
+        # ۴. اجرای Action در محیط
+        obs, r, done, info = step(env, action[0].lower() + action[1:])
+        step_str = f"Thought {i}: {thought}\nAction {i}: {action}\nObservation {i}: {obs}\n"
+        prompt += step_str                  # ۵. افزودن به context برای گام بعد
+        if done:
+            break
+    if not done:
+        obs, r, done, info = step(env, "finish[]")   # ۶. اگر تمام نشد، اجباری پایان بده
+    return r, info
+<div dir="rtl">
+نکات کلیدی درباره‌ی نحوه‌ی کار:
+حداکثر ۷ گام (range(1, 8)) — دقیقاً همان «7 steps for HotpotQA» در مقاله (برای FEVER می‌شود ۵)
+stop sequence هوشمند: مدل را وادار می‌کند فقط Thought و Action تولید کند و قبل از Observation متوقف شود — چون Observation باید از محیط واقعی بیاید، نه از توهم مدل. این همان نکته‌ای است که مقاله می‌گوید ReAct را «grounded» و ضد-hallucination می‌کند.
+مدیریت خطای فرمت (n_badcalls): اگر مدل خروجی بدفرمت داد (نتوانست Thought/Action را جدا کند)، فقط Action را دوباره صدا می‌زند. این بخش در مقاله نیست ولی جزو جزئیات مهندسی عامل پایه است.
+حالت context تجمعی: کل تاریخچه (prompt += step_str) در هر گام به ورودی مدل اضافه می‌شود — این همان c_t = (o₁,a₁,...,o_t) در فرمول‌بندی مقاله است.
+پایان اجباری: اگر در ۷ گام پاسخ نداد، finish[] خالی فرستاده می‌شود (reward صفر) — منطبق بر استراتژی «ReAct → CoT-SC: when ReAct fails to return an answer within given steps».
+جمع‌بندی سؤال ۲: عامل پایه = یک LLM منجمد (در کد: GPT-3 davinci-002، temp=0) + یک حلقه‌ی ساده‌ی بدون آموزش که با few-shot prompt مدل را وادار می‌کند در هر گام یک Thought و یک Action تولید کند، Action را در محیط ویکی‌پدیا اجرا می‌کند، Observation واقعی را برمی‌گرداند و به context اضافه می‌کند — تا رسیدن به finish[] یا سقف ۷ گام.
+</div>
+
+WebShop
+سؤال ۱: دیتای پروژه چیست؟
+دیتا چیست و از کجا می‌آید؟
+دیتای اصلی WebShop از scrape کردن amazon.com به دست آمده است. طبق بخش 3.2 مقاله:
+از سرویس ScraperAPI برای استخراج محصولات استفاده شده
+جمعاً ۱,۱۸۱,۴۳۶ محصول (۱.۱۸ میلیون) از ۵ دسته: مد (fashion)، آرایش (makeup)، الکترونیک، مبلمان (furniture)، و غذا (food)
+با استفاده از ۱۱۳ نام زیردسته به عنوان query جستجو scrape شده‌اند
+آیا تولید می‌شود؟
+دیتا دو لایه دارد:
+۱. لایه محصولات (scrape شده، تولید نمی‌شود): محصولات واقعی آمازون هستند که یک‌بار استخراج و در فایل‌های JSON ذخیره شده‌اند. در کد، این فایل‌ها در web_agent_site/utils.py مشخص شده‌اند:
+</div>
+DEFAULT_ATTR_PATH = join(BASE_DIR, '../data/items_ins_v2_1000.json')
+DEFAULT_FILE_PATH = join(BASE_DIR, '../data/items_shuffle_1000.json')
+DEFAULT_REVIEW_PATH = join(BASE_DIR, '../data/reviews.json')
+<div dir="rtl">
+۲. لایه دستورالعمل‌ها و trajectory ها (تولید شده توسط انسان):
+۱۲,۰۸۷ دستورالعمل زبان طبیعی که توسط کارگران Amazon Mechanical Turk (AMT) نوشته شده‌اند. به هر کارگر یک محصول هدف نشان داده می‌شود (با عنوان، دسته، attribute ها، و گزینه‌های خرید) و از او خواسته می‌شود دستوری برای یک agent خرید بنویسد. میانگین طول ۱۵.۹ کلمه و واژگان ۹,۰۳۶ کلمه.
+بیش از ۱,۶۰۰ trajectory انسانی (دموی خرید) که برای imitation learning استفاده می‌شوند (۱,۰۱۲ trajectory آموزشی + ۵۴ توسعه + ۵۰۰ تست).
+انواع دیتا
+تعداد و اندازه‌ها
+سه نسخه از دیتا وجود دارد:
+۱۰۰ محصول (items_shuffle.json با DEBUG_PROD_SIZE) — برای دیباگ
+۱,۰۰۰ محصول (items_shuffle_1000.json) — حالت سبک پیش‌فرض کد
+۱.۱۸ میلیون محصول (items_shuffle.json کامل، ~چند گیگابایت) — نسخه کامل مقاله
+تقسیم‌بندی دستورالعمل‌ها (i.i.d.): train: ۱۰,۵۸۷ / dev: ۱,۰۰۰ / test: ۵۰۰.
+
+سؤال ۲: عامل (agent) پایه این محیط چیست؟
+agent پایه چیست و از کجا می‌آید؟
+طبق بخش ۴ مقاله، سه نوع agent پایه وجود دارد. عامل پایه اصلی یادگیرنده، یک معماری دو-مدلی است که در baseline_models/agent.py پیاده شده:
+۱. Rule Baseline (قاعده‌محور):
+متن دقیق دستور را search می‌کند، اولین محصول نتایج را کلیک و بدون انتخاب گزینه می‌خرد. بدون یادگیری.
+۲. IL (Imitation Learning) — عامل اصلی: ترکیب دو مدل از پیش‌آموزش‌دیده:
+BART برای تولید query جستجو (مسئله seq2seq): از دستور u، اکشن search[...] تولید می‌کند. با ۱,۴۲۱ جفت instruction-search از trajectory های انسانی fine-tune شده.
+BERT (۱۲ لایه، bert-base-uncased) برای انتخاب اکشن کلیک: روی هر اکشن موجود توزیع احتمال می‌سازد و اکشنی که انسان کلیک کرده را maximize می‌کند. با ۹,۵۵۸ نمونه از trajectory ها آموزش دیده.
+اختیاری: ResNet-50 برای پردازش تصویر محصول به بردار ۵۱۲ بُعدی (در کد با فلگ args.get_image).
+این در کد به‌وضوح دیده می‌شود (baseline_models/agent.py:40-50):
+</div>
+if args.network == 'rnn':
+    self.network = RCDQN(vocab_size, embedding_dim, ...)
+elif args.network == 'bert':
+    config = BertConfigForWebshop(image=args.get_image, pretrained_bert=(args.bert_path != 'scratch'))
+    self.network = BertModelForWebshop(config)
+<div dir="rtl">
+۳. IL+RL: مدل IL با Reinforcement Learning (policy gradient، روش A3C/[32]) fine-tune می‌شود. BART فریز می‌شود و top-10 query تولید می‌کند، و BERT یاد می‌گیرد انتخاب کند. این بهترین مدل مقاله است (Score=62.4، SR=28.7%).
+همه مدل‌ها محلی هستند (PyTorch/HuggingFace) — هیچ API خارجی فراخوانی نمی‌شود.
+دقت‌ها چطور حساب می‌شوند؟
+ارزیابی بدون نیاز به انسان و کاملاً خودکار است. دو معیار اصلی:
+۱. Task Score = ۱۰۰ × میانگین reward ۲. Success Rate (SR) = درصد episode هایی که r = 1 شده
+reward از فرمول چندبخشی محاسبه می‌شود (معادله ۱ مقاله):
+</div>
+r = r_type × ( |U_att ∩ Y_att| + |U_opt ∩ Y_opt| + 1[y_price ≤ u_price] ) / ( |U_att| + |U_opt| + 1 )
+<div dir="rtl">
+اجزای آن:
+r_att (امتیاز attribute): نسبت ویژگی‌های دستور که محصول انتخابی دارد
+r_option (امتیاز گزینه): نسبت گزینه‌های درست (رنگ/سایز) که انتخاب شده
+r_price (امتیاز قیمت): ۱ اگر قیمت محصول ≤ سقف قیمت دستور
+r_type: ضریب TextMatch(ȳ, ȳ*) که با heuristic تطبیق متنی، وقتی محصول از «نوع» اشتباه باشد reward را پایین می‌آورد (مثلاً «کره» در برابر «گوشت گیاهی»)
+Ground Truth چیست؟
+برای هر دستور، یک محصول هدف y* وجود دارد که دستور از آن تولید شده. ground truth شامل: مجموعه attribute های هدف U_att، گزینه‌های هدف U_opt، و سقف قیمت u_price. نکته مهم (بخش 3.1 مقاله): می‌توان r=1 گرفت حتی اگر محصول نهایی دقیقاً y* نباشد — چون چند محصول می‌توانند هدف «یک پیراهن قرمز» را برآورده کنند.
+در حالت text، reward در [web_agent_text_env.py] محاسبه می‌شود؛ در حالت HTML، از فیلد #reward صفحه خوانده می‌شود (web_agent_site_env.py:136-141).
+مقیاس عملکرد (از مقاله)
+گلوگاه اصلی مدل‌ها (طبق آزمایش Choice oracle): انتخاب گزینه‌های درست (اختلاف ۲۸٪ با انسان) و تولید query جستجوی خوب.
+
+
+
+X-WebAgentBench
+هزینه ترجمه:
+اول: دقیقاً چه چیزی باید ترجمه شود؟
+سرور محیط سه فایل را برای هر زبان لود می‌کند (خط ۴۷۸–۴۸۰ در app_multi.py). پس نسخه فارسی به سه فایل جدید نیاز دارد: ..._fa.json. ولی حجم و اهمیت‌شان زمین تا آسمان فرق دارد.
+الف) دستورالعمل‌ها (goals) — items_human_ins_fa.json
+اعداد واقعی از فایل انگلیسی:
+۴۹۸ محصول (ASIN) که با مقاله می‌خواند (≈۵۰۰ دستور انتخاب‌شده از ReAct)
+۸۱۰ دستور در مجموع
+۶۱ هزار کاراکتر ≈ ۱۵ هزار توکن
+این تقریباً هیچی است. کل دستورات را می‌توان با چند سنت ترجمه کرد.
+ب) محصولات (environment) — items_shuffle_40k_fa.json
+اینجا غول واقعی است:
+۴۲,۱۳۹ محصول (دقیقاً مطابق مقاله: ۴۲,۱۳۹ × ۱۴ زبان = ۵۸۹,۹۴۶)
+متن قابل‌ترجمه (name, full/small_description, category, query): ۸۵.۵ میلیون کاراکتر
+≈ ۲۱.۴ میلیون توکن ورودی
+بقیه فیلدها (ASIN، URL، قیمت، تصویر، seller_id) نباید ترجمه شوند — دست‌نخورده کپی می‌شوند.
+ج) attributeها — items_ins_v2_40k_fa.json (۱۵MB)
+این فایل را سرور برای تب «ویژگی‌ها»ی صفحه محصول استفاده می‌کند. (پس آن چیزی که قبلاً گفتم «کاملاً بی‌استفاده» دقیق نبود — در سرور استفاده می‌شود، فقط در کد ارزیابی Eval نه.) برای یک محیط کامل باید ترجمه شود، ولی چون از همان متن محصولات استخراج شده، می‌توان دوباره با TF-IDF تولید کرد (هرچند TF-IDF برای انگلیسی تنظیم شده؛ ترجمه ساده‌تر است).
+دوم: روش‌های ترجمه و تخمین هزینه
+طبق مقاله، روش مرجع دو ابزار جداگانه است:
+تخمین هزینه برای فارسی (با قیمت‌های فعلی):
+دستورات (۱۵K توکن / ۶۱K کاراکتر):
+Google Translate (~$۲۰ به ازای میلیون کاراکتر) → ≈ $۱.۲
+عملاً رایگان با هر روشی.
+محصولات (۲۱.۴M توکن ورودی؛ خروجی فارسی به‌خاطر اسکریپت غیرلاتین ≈۱.۵× یعنی ~۳۰M توکن):
+GPT-4o: ورودی ~$۵۴ + خروجی ~$۳۰۰ ≈ $۳۵۰
+GPT-4o با Batch API (۵۰٪ تخفیف): ≈ $۱۷۵
+GPT-4o-mini: ≈ $۲۱ (کیفیت پایین‌تر)
+Google Translate برای محصولات: ۸۵.۵M کاراکتر × $۲۰/M = $۱,۷۱۰ ❗
+نکته مهم: Google Translate برای محصولات هم گران‌تر است هم بی‌کیفیت‌تر از GPT-4o. پس تقسیم‌بندی مقاله امروز حتی منطقی‌تر شده.
+سوم: راهکار پیشنهادی (بهتر از خود مقاله)
+۱. دستورات → یک LLM قوی یا Google Translate هزینه ناچیز است؛ کیفیت مهم‌تر از هزینه. می‌توانی با GPT-4o یا Claude ترجمه کنی و سپس مرحله کنترل کیفیت مقاله را اجرا کنی (امتیازدهی ۰–۱۰ با یک مدل داور، نگه‌داشتن ≥۸، رسیدن به ۲۰۰ دستور نهایی).
+۲. محصولات → GPT-4o از طریق Batch API
+نصف هزینه (~$۱۷۵)، کیفیت GPT-4-کلاس.
+فقط فیلدهای متنی را در prompt بفرست، JSON structure را دست نزن.
+می‌توان چند محصول را در یک درخواست batch کرد تا سربار prompt کم شود.
+۳. نکات فنی که مقاله به آن‌ها نمی‌پردازد ولی برای فارسی حیاتی‌اند:
+RTL: فارسی راست‌به‌چپ است؛ باید 'fa' را به لیست languages در app_multi.py:475 اضافه کنی و رندر template را بررسی کنی.
+پرامپت‌ها: در WebShop_prompt.py کلمات اکشن (search/click) چندزبانه‌اند؛ باید معادل فارسی اضافه شود.
+موتور جستجو: init_search_engine برای هر زبان جداگانه ساخته می‌شود؛ توکنایزیشن فارسی (نیم‌فاصله، عدم وجود فاصله مشخص) ممکن است نیاز به تنظیم داشته باشد.
+خلاصه اعداد
+می‌خواهی یک اسکریپت ترجمه نمونه بنویسم که فیلدهای درست items_shuffle را جدا کند، ترجمه کند و ساختار JSON را حفظ کند؟
+claude-api skill
+برای پیدا کردن قیمت‌های دقیق با منبع، صفحه رسمی OpenAI را بررسی می‌کنم.
+دارم صفحات رسمی قیمت‌گذاری OpenAI و Google را بررسی می‌کنم.
+Web Fetchhttps://openai.com/api/pricing/
+Fetched from https://openai.com/api/pricing/
+Web Fetchhttps://cloud.google.com/translate/pricing
+Fetched from https://cloud.google.com/translate/pricing
+OpenAI 403 برگرداند. با WebSearch قیمت‌های GPT-4o را پیدا می‌کنم.
+Web SearchOpenAI GPT-4o GPT-4o-mini pricing per million tokens 2026
+Allowed: openai.com, platform.openai.com
+OUT
+Web search results for query: "OpenAI GPT-4o GPT-4o-mini pricing per million tokens 2026"
+
+Links: [{"title":"Pricing | OpenAI API","url":"https://developers.openai.com/api/docs/pricing"},{"title":"GPT-4o mini: advancing cost-efficient intelligence | OpenAI","url":"https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/"},{"title":"ChatGPT Pricing | OpenAI","url":"https://openai.com/business/pricing/"},{"title":"GPT-4o mini Model | OpenAI API","url":"https://developers.openai.com/api/docs/models/gpt-4o-mini"},{"title":"Compare models | OpenAI API","url":"https://platform.openai.com/docs/models/compare?model=gpt-4o-mini"},{"title":"GPT-4o Model | OpenAI API","url":"https://developers.openai.com/api/docs/models/gpt-4o"},{"title":"GPT-4.1 mini Model | OpenAI API","url":"https://developers.openai.com/api/docs/models/gpt-4.1-mini"},{"title":"GPT-4o API Pricing is confusing - API - OpenAI Developer Community","url":"https://community.openai.com/t/gpt-4o-api-pricing-is-confusing/953145"},{"title":"Confused about OpenAI Batch API (GPT-4o-mini) pricing – Why are the total costs higher? - API - OpenAI Developer Community","url":"https://community.openai.com/t/confused-about-openai-batch-api-gpt-4o-mini-pricing-why-are-the-total-costs-higher/936262"},{"title":"Understanding `gpt-4o-mini-tts` Pricing (Input Characters → Cost) - API - OpenAI Developer Community","url":"https://community.openai.com/t/understanding-gpt-4o-mini-tts-pricing-input-characters-cost/1151816"}]
+
+Based on the search results, here's the current pricing information for OpenAI's models:
+
+## GPT-4o-mini Pricing
+
+GPT-4o-mini is priced at 15 cents per million input tokens and 60 cents per million output tokens.
+
+## GPT-4o Pricing
+
+While the search results reference GPT-4o pricing, the specific 2026 rates aren't clearly stated in the snippets. However, one community post mentions that the price for 1M input tokens is $5 for the "gpt-4o" model and $2.5 for "gpt-4o-2024-08-06", though this information is from September 2024.
+
+The official OpenAI pricing page (updated within the last 11 hours) was retrieved in the search results, but the specific GPT-4o pricing details weren't fully included in the excerpt. For the most current and complete pricing information including any 2026 updates, I recommend checking the [OpenAI API Pricing page](https://developers.openai.com/api/docs/pricing) directly.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+Web Fetchhttps://platform.openai.com/docs/models/compare?model=gpt-4o-mini
+Fetched from https://platform.openai.com/docs/models/compare?model=gpt-4o-mini
+Web Fetchhttps://developers.openai.com/api/docs/models/compare
+Fetched from https://developers.openai.com/api/docs/models/compare
+Web Fetchhttps://developers.openai.com/api/docs/models/gpt-4o
+Fetched from https://developers.openai.com/api/docs/models/gpt-4o
+Web Fetchhttps://developers.openai.com/api/docs/models/gpt-4o-mini
+Fetched from https://developers.openai.com/api/docs/models/gpt-4o-mini
+اطلاعات کامل و با منبع آماده است:
+
+قیمت‌های رسمی با منبع
+OpenAI — منبع: developers.openai.com/api/docs/models
+Batch API: برای هر دو مدل، قیمت Cached Input نصف می‌شود (50% تخفیف):
+GPT-4o: $1.25 برای cached input
+GPT-4o-mini: $0.075 برای cached input
+
+Google Cloud Translation API — منبع: cloud.google.com/translate/pricing
+
+برآورد هزینه نسخه فارسی X-WebAgentBench
+نکته: اعداد GPT-4o که قبلاً ذکر کردم ($2.50 input / $10 output) صحیح بودند — فقط منبع نداشتم. همچنین Google Translate $20/M کاراکتر هم دقیق بود.
+Sources:
+GPT-4o Model Pricing — OpenAI Developer Docs
+GPT-4o-mini Model Pricing — OpenAI Developer Docs
+Cloud Translation API Pricing — Google Cloud
+
+
+برآورد هزینه با Claude
+منبع: Anthropic API Pricing (از claude-api skill — کش شده ۲۰۲۶-۰۶-۰۴)
+قیمت مدل‌های Claude
+
+حجم داده برای ترجمه به فارسی
+فارسی معمولاً ۱۰–۲۰٪ کلمه بیشتر از انگلیسی تولید می‌کند — تخمین output محافظه‌کارانه است.
+
+هزینه کل ترجمه
+
+مقایسه با روش‌های قبلی
+نتیجه: Claude Haiku 4.5 ارزان‌ترین گزینه برای ترجمه انبوه است — تقریباً ۱۰ برابر ارزان‌تر از Google Translate. البته کیفیت ترجمه باید تست شود؛ برای متن‌های تخصصی محصولات، Sonnet ممکن است نتایج بهتری بدهد.
+Sources:
+Anthropic API Pricing
+
+راهکارهای ارزان‌تر ترجمه:
+بله، چند راهکار رایگان وجود دارد:
+
+۱. مدل‌های ترجمه محلی (رایگان، بدون API)
+Helsinki-NLP/opus-mt-en-fa روی HuggingFace — مستقیم روی ماشین اجرا می‌شود:
+from transformers import MarianMTModel, MarianTokenizer
+
+model_name = "Helsinki-NLP/opus-mt-en-fa"
+tokenizer = MarianTokenizer.from_pretrained(model_name)
+model = MarianMTModel.from_pretrained(model_name)
+
+def translate(text):
+    inputs = tokenizer([text], return_tensors="pt", padding=True)
+    output = model.generate(**inputs)
+    return tokenizer.decode(output[0], skip_special_tokens=True)
+هزینه: $0 — فقط زمان CPU/GPU
+
+۲. Meta NLLB-200
+کیفیت بالاتر از MarianMT، از Meta، رایگان:
+from transformers import pipeline
+
+translator = pipeline(
+    "translation",
+    model="facebook/nllb-200-distilled-600M",
+    src_lang="eng_Latn",
+    tgt_lang="pes_Arab"  # فارسی
+)
+
+۳. Google Translate رایگان (غیررسمی)
+کتابخانه deep-translator که از رابط رایگان Google استفاده می‌کند — برای حجم کم مناسب است:
+from deep_translator import GoogleTranslator
+result = GoogleTranslator(source='en', target='fa').translate("hello world")
+برای ۸۵M کاراکتر rate limit می‌خورد — مناسب نیست.
+
+مقایسه
+
+پیشنهاد عملی: با NLLB-200 شروع کن. چند نمونه از items_shuffle را ترجمه کن و کیفیت را بررسی کن. اگر برای benchmark قابل قبول بود، تمام دیتاست را رایگان ترجمه می‌کنی. اگر کیفیت کافی نبود، فقط برای بخش items_human_ins (که ۸۱۰ دستورالعمل کوچک است) از Haiku استفاده کن — هزینه‌اش زیر $1 می‌شود.
+ارزان‌ترین روش‌ها برای ترجمه دیتاست به فارسی
+۱. APIهای تخصصی ترجمه
+بهترین گزینه تخصصی: Azure Translator با $10/M کاراکتر — نصف قیمت Google.
+هزینه ترجمه items_shuffle_40k ($855**
+
+۲. مدل‌های LLM ارزان (بهتر از ترجمه ماشینی، چون context می‌فهمند)
+
+برآورد هزینه کل (~26.4M توکن input + ~26.4M توکن output)
+
+نتیجه
+ارزان‌ترین گزینه با کیفیت قابل قبول: DeepSeek V4 Flash یا Gemini 2.5 Flash-Lite — هر دو زیر $15 برای کل دیتاست.
+اگر می‌خوای از Batch API هم استفاده کنی، Gemini 2.5 Flash-Lite با Batch mode به $0.05 input / $0.20 output می‌رسد — یعنی کل هزینه زیر $7.
+Sources:
+Gemini API Pricing — Google AI for Developers
+DeepSeek API Pricing
+Azure Translator Pricing — Microsoft
+Translation API Pricing Comparison 2026 — Langbly
+
+اما آیا WebShop بستر مناسبی برای ساخت دیتاست بومی سایت‌های واقعی فارسی هست؟
+
+خلاصه‌ی یافته‌ها از کد و مقاله
+X-WebAgentBench یک محیط شبیه‌سازی‌شده‌ی بسته (WebShop) است، نه ابزاری برای سایت‌های واقعی. سه بخش اصلی آن را بررسی کردم تا ببینم کدام بخش برای سناریوی شما (سایت واقعی، بدون ترجمه، صفحه شلوغ) قابل استفاده است.
+
+۱. منطق امتیازدهی (reward) — goal.py:230-272
+فرمول امتیاز کاملاً مخصوص خرید محصول است:
+reward = (تعداد attribute های منطبق + تعداد option های منطبق + قیمت_درست)
+         ─────────────────────────────────────────────────────────────  × r_type
+              (تعداد کل attributes + تعداد کل options + 1)
+این فرمول به فیلدهای ساختاریافته و برچسب‌خورده وابسته است که در سناریوی شما وجود ندارند:
+goal['attributes'], goal['goal_options'], goal['price_upper'] — از ground-truth محصول
+محصول خریداری‌شده باید Attributes, Title, BulletPoints, Description, product_category داشته باشد
+مطابقت با thefuzz (آستانه ۸۵) و spaCy (تطبیق اسم‌ها) و normalize_color
+نتیجه: اگر تسک شما هم «پیدا/خرید محصولی با ویژگی‌های مشخص زیر قیمت X» باشد، ایده‌ی فرمول قابل اقتباس است، اما کد مستقیماً کار نمی‌کند چون به کاتالوگ برچسب‌خورده نیاز دارد. برای صفحه‌ای پر از تبلیغ و آفر، این متریک هیچ سیگنالی نمی‌دهد.
+
+۲. کد تولید دیتاست — generate_attrs.py
+از TF-IDF روی name + small_description (گروه‌بندی‌شده با category) ویژگی استخراج می‌کند. این یعنی:
+ورودی باید کاتالوگ تمیز و ساختاریافته باشد (نام، توضیح کوتاه، دسته)
+خروجی، ویژگی‌هایی است که بعداً به goal تبدیل می‌شوند
+دستورالعمل‌های انسانی (items_human_ins) جداگانه با MTurk جمع شده‌اند، نه با این کد
+نتیجه: صفحه‌ی خام یک سایت واقعی (با تبلیغ/آفر/کادر) مستقیماً به این pipeline خورانده نمی‌شود. اول باید داده‌ی تمیز محصول را استخراج کنید — و آن مرحله را این repo حل نکرده است.
+
+۳. موتور محیط و observation — WebShopEnv.py:22-106
+این بخش بزرگ‌ترین مانع است. تابع webshop_text با BeautifulSoup، HTML را پارس می‌کند اما به کلاس‌های مشخص قالب WebShop وابسته است:
+if t.parent.name == 'button':          processed_t = f'\n[{t}] '
+elif t.parent.name == 'label':         # options
+elif t.parent.get('class') == ["product-link"]:  # asins
+این فقط روی HTML تمیز و templated خود سرور Flask کار می‌کند. روی DOM واقعی یک سایت با تبلیغ و کادر، این پارسر کاملاً می‌شکند.
+
+پاسخ مستقیم به سوال شما
+چه چیزی واقعاً به دردتان می‌خورد
+فلسفه‌ی متریک reference-based: تعریف goal به‌صورت «محصول مرجع + مجموعه ویژگی»، و امتیاز = درصد همپوشانی ویژگی‌ها به‌جای قضاوت انسانی. این الگوی خوبیست که از goal.py وام بگیرید.
+ساختار حلقه‌ی ReAct و قالب‌های prompt (model.py, WebShop_prompt.py) — مستقل از اینکه محیط چیست.
+جداسازی reward به زیرمؤلفه‌ها برای تحلیل خطا (چرا عامل شکست خورد: type؟ attribute؟ option؟).
+چه چیزی را باید خودتان از صفر بسازید
+استخراج observation از DOM واقعی (یا accessibility tree / screenshot) — کاملاً جدید
+تعریف ground-truth و منطق success برای سایت واقعی
+مدیریت عدم‌قطعیت و content drift سایت زنده (تکرارپذیری؛ مشکل اصلی همه‌ی بنچمارک‌های سایت واقعی)
+
+پیشنهاد: برای سناریوی شما، X-WebAgentBench زیربنای مناسبی نیست
+سناریویی که توصیف کردید (سایت واقعی، صفحه‌ی شلوغ، DOM پیچیده) دقیقاً همان چیزیست که نسل دیگری از بنچمارک‌ها برایش طراحی شده‌اند — و چرخ را دوباره اختراع نکنید:
+WebArena — کپی reproducible از سایت‌های واقعی (با همان پیچیدگی DOM)؛ تکرارپذیری بالا. بهترین گزینه اگر می‌خواهید reward قطعی داشته باشید.
+WebVoyager — تسک روی سایت‌های زنده‌ی واقعی + ارزیاب خودکار مبتنی بر MLLM (به‌جای فرمول دستی). دقیقاً برای صفحات شلوغ واقعی.
+Mind2Web — ۲۰۰۰ تسک از ۱۳۷ سایت واقعی؛ متریک‌های element accuracy / operation F1 / step success rate.
+BrowserGym — اکوسیستمی که این محیط‌ها را یکپارچه می‌کند.
+برای امتیازدهی روی صفحات واقعی شلوغ، رویکرد WebVoyager (ارزیاب MLLM) عملی‌تر از فرمول ویژگی‌محور X-WebAgentBench است، چون نیازی به برچسب‌گذاری ساختاریافته‌ی هر صفحه ندارد.
+جمع‌بندی یک‌خطی: از X-WebAgentBench فقط ایده‌ی طراحی متریک و harness عامل را بردارید؛ برای محیط و امتیازدهی سایت واقعی، WebArena (تکرارپذیر) یا WebVoyager (ارزیاب MLLM) نقطه‌ی شروع بسیار بهتری هستند.
+Sources:
+WebArena & Real-World Web Agent Benchmarks — CallSphere
+The BrowserGym Ecosystem for Web Agent Research — arXiv
+WebForge: Realism-Reproducibility-Scalability Trilemma — arXiv
+
+روش هرس DOM در Prune4Web — «DOM Tree Pruning Programming»
+ایده‌ی کلیدی: به‌جای اینکه LLM خودش کل DOM عظیم (۱۰٬۰۰۰ تا ۱۰۰٬۰۰۰ توکن) را بخواند و عنصر هدف را پیدا کند، LLM فقط یک برنامه‌ی پایتونِ امتیازدهی کوتاه تولید می‌کند و آن برنامه مستقلاً روی همه‌ی عناصر اجرا می‌شود و آن‌ها را رتبه‌بندی می‌کند. نتیجه: کاهش ۲۵ تا ۵۰ برابری تعداد کاندیداها (از >۵۰۰ عنصر به <۲۰) بدون «رقیق شدن توجه» (attention dilution).
+این فرایند سه گام دارد:
+گام ۱ — فیلتر اولیه‌ی قانون‌محور (Rule-based)
+فقط عناصر تعاملی نگه داشته می‌شوند: بر اساس تگ (<a>, <button>, <input>) یا attribute نقش (role='checkbox' و…).
+عناصر غیرتعاملی حذف نمی‌شوند بلکه متن کلیدی‌شان (text, aria-label، …) استخراج و به نزدیک‌ترین عنصر تعاملی به‌عنوان context الصاق می‌شود.
+خروجی: یک درخت DOM پیش‌پردازش‌شده، فقط شامل عناصر تعاملیِ غنی‌شده از نظر متن.
+گام ۲ — تولید تابع امتیازدهی (Scoring Function Generation)
+LLM یک قالب ثابت heuristic را پر می‌کند؛ یعنی فقط کلیدواژه‌ها و وزن پایه‌شان ({keyword: w_base}) را بر اساس زیرتسک سطح‌پایین تولید می‌کند، نه کل کد. این کار، پایداری و کنترل‌پذیری کد تولیدشده را بالا می‌برد.
+قالب، تطبیق لایه‌ای و وزن‌دار انجام می‌دهد:
+اولویت attribute (β): متن دیداری (Tier 1) > attribute معتبر مثل aria-label/placeholder (Tier 2) > سایر مثل class/id (Tier 3). یعنی β1 > β2 > β3.
+کیفیت تطبیق (α): دقیق (exact) > عبارت (phrase/substring) > کلمه (word/token) > فازی (fuzzy). یعنی α1 > α2 > α3 > α4.
+گام ۳ — اجرای هرس و خروجی
+تابع تولیدشده اجرا می‌شود: امتیاز هر عنصر e بر اساس Algorithm 1:
+برای هر عنصر e:
+  برای هر (text, type) در e:
+     β ← بر اساس نوع attribute (دیداری / معتبر / دیگر)
+     برای هر keyword k:
+        α ← exact? α1 : phrase? α2 : word? α3 : fuzzy>θ? α4×fuzzyscore : 0
+        if α>0:  S[e] += W[k] × α × β
+سپس Top-N عنصر (پیش‌فرض N=20) انتخاب می‌شود و فقط همین لیست کوتاه به مدل بعدی (Action Grounder) داده می‌شود.
+چرا این برای کار تو مهم است
+این دقیقاً همان حلقه‌ی مفقوده‌ای است که در بحث قبلی گفتم باید از صفر بسازی: روشی برای استخراج observation از DOM واقعیِ شلوغ (پر از تبلیغ/آفر/کادر). نکات قابل‌اقتباس:
+جدا کردن «هوش» از «اجرا»: LLM فقط کلیدواژه/وزن می‌دهد؛ تطبیق و رتبه‌بندی را یک تابع سبکِ تفسیرپذیر انجام می‌دهد → ارزان، سریع، و روی مدل‌های کوچک هم کار می‌کند (حتی Qwen 0.5B به recall بالای ۹۰٪ در Top-3 رسید).
+فیلتر قانون‌محورِ اولیه که فقط عناصر تعاملی را نگه می‌دارد و متن مجاور را به آن‌ها می‌چسباند — جایگزین مستقیم پارسر شکننده‌ی WebShopEnv.py که به کلاس‌های ثابت WebShop وابسته بود. این رویکرد روی هر DOM دلخواهی کار می‌کند، نه فقط قالب WebShop.
+سیگنال reward میانی برای فیلتر (R_filtering: آیا عنصر ground-truth در لیست Top-N ماند؟) — می‌تواند مکمل reward خرید-محورِ goal.py باشد.
+یاد گرفتم. اگر بخواهی، می‌توانم گام بعد را پیش ببرم: طراحی اینکه چطور این Pruning را جایگزین پارسر فعلی محیط کنیم تا روی دیتای سایت واقعی کار کند.
+
+نه، منطقی نیست — و دلیلش ساده است:
+مشکلی که Prune4Web حل می‌کند در WebShop وجود ندارد.
+WebShop یک محیط Flask کنترل‌شده با HTML بسیار کم‌حجم و قالب‌بندی‌شده است. پارسر فعلی WebShopEnv.py:67-96 همان کاری را می‌کند که Prune4Web هدفش است — یعنی کاهش HTML به یک لیست کوتاه از عناصر تعاملی — اما با چند خط BeautifulSoup ساده، چون ساختار HTML کاملاً پیش‌بینی‌پذیر است. توکن‌های observation نهایی WebShop چند صد توکن بیشتر نیست، نه ۱۰٬۰۰۰ تا ۱۰۰٬۰۰۰.
+پس کجا منطقی است؟
+دقیقاً همان سناریویی که قبلاً مطرح کردی: سایت واقعی با DOM شلوغ، تبلیغ، کادر، آفر. آن‌جاست که:
+پارسر ساده فعلی می‌شکند (چون به کلاس‌های WebShop وابسته است)
+DOM ورودی واقعاً ۱۰٬۰۰۰+ توکن دارد
+Prune4Web ارزش دارد چون قبل از دادن به LLM، این حجم را به <۲۰ عنصر کاهش می‌دهد
+جمع‌بندی یک‌خطی: برای WebShop، over-engineering محض است. برای سایت واقعی، دقیقاً ابزار مناسب است.
+عامل دقیقاً چه می‌بیند؟
+مشاهده‌ی عامل یک متن ساده است که از HTML صفحه استخراج می‌شود. نه HTML خام — فقط متن مرئی با bracket‌های خاص برای عناصر کلیک‌پذیر.
+صفحه ۱ — صفحه شروع (init)
+WebShop 
+Instruction:  
+im looking for a earbud headphones for stereo sound quality of style je-04b 
+which will be more comfortable for me to use without disturbing others, 
+and price lower than 60.00 dollars 
+[Search]
+عامل فقط دستورالعمل خرید و دکمه‌ی Search می‌بیند.
+
+صفحه ۲ — نتایج جستجو (search)
+Instruction: im looking for ...
+[Back to Search] 
+Page 1 (Total results: 50) 
+[Next >] 
+[B09743DFJC] 
+Jinpei Cute Panda Wireless Earphones, Waterproof, Noise Cancelling...
+$39.9 
+[B097445J5R] 
+Jinpei Cute Pink cat Wireless Earphones...
+$39.9 
+[B084TSH1YW] 
+TWS Headphones Wireless Earbuds...
+$59.99 
+...
+محصولات با ID (مثل B09743DFJC) و قیمت نمایش داده می‌شوند — همه کلیک‌پذیرند.
+
+صفحه ۳ — صفحه محصول (item)
+Instruction: im looking for ...
+[Back to Search] 
+[< Prev] 
+style [je-01b][je-02b][je-03b][[je-04b]][je-05b]
+Jinpei Cute Panda Wireless Earphones...
+Price: $39.9 
+Rating: N.A. 
+[Description] 
+[Features] 
+[Reviews] 
+[Buy Now]
+توجه: آپشن انتخاب‌شده با [[double bracket]] نمایش داده می‌شود (مثل [[je-04b]]).
+
+صفحه ۴ — پایان (end)
+Your score (min 0.0, max 1.0): 0.6666666666666666
+
+نکات کلیدی در کد
+در WebShopEnv.py:73-93 این parsing انجام می‌شود. عامل در هر مرحله تنها یک صفحه می‌بیند + کل تاریخچه‌ی مکالمه از ابتدا (که مشکل هزینه را ایجاد می‌کند).
+
+پیاده‌سازی روی دیجی‌کالا
+حالا تصویر کامل دارم. این جواب اصلی:
+
+چطور ارزیابی خودکار کار می‌کند
+پیش‌نیاز: داده از کجا می‌آید؟
+سیستم از سه لایه داده استفاده می‌کند که همه باید از پیش آماده باشند:
+items_shuffle/   ← محصولات (40k محصول با تمام جزئیات)
+     ↓
+items_ins/       ← ویژگی‌های استخراج‌شده (TF-IDF) برای هر محصول
+     ↓
+items_human_ins/ ← دستورالعمل انسانی + هدف دقیق برای 200 محصول
+
+جریان کامل ارزیابی خودکار
+[items_human_ins] → هدف تعریف می‌شود
+        ↓
+عامل دستورالعمل را می‌بیند ("i need a 9.5 hiking shoe with rubber sole")
+        ↓
+عامل در محیط Flask جستجو/کلیک می‌کند
+        ↓
+عامل click[Buy Now] می‌زند
+        ↓
+محصول خریداری‌شده vs هدف → get_reward() محاسبه می‌شود
+        ↓
+امتیاز بین 0.0 تا 1.0
+
+قلب سیستم: get_reward() در goal.py:230
+وقتی عامل "Buy Now" می‌زند، سرور Flask محصول خریداری‌شده را با هدف از پیش تعریف‌شده مقایسه می‌کند:
+total_reward = (
+    (num_attr_matches + num_option_matches + r_price)
+    / (len(goal['attributes']) + len(goal['goal_options']) + 1)
+)
+total_reward *= r_type  # جریمه اگر نوع محصول کاملاً اشتباه باشد
+مثال عینی از داده واقعی:
+هدف برای B015R09D8M:
+{
+  "instruction": "i need a 9.5 rubber soled hiking shoe made of light weight vinyl acetate.",
+  "instruction_attributes": ["light weight", "vinyl acetate", "rubber sole"],
+  "instruction_options": ["9.5"]
+}
+امتیاز بر اساس:
+
+چرا برای دیجی‌کالا این نمی‌تواند کار کند
+مشکل اول — instruction_attributes از کجا می‌آید؟
+این فیلد را کارگران MTurk آمازون برای هر محصول دستی نوشتند. برای دیجی‌کالا باید یکی از اینها را انجام دهی:
+الف) دوباره با انسان این کار را کنی (گران)
+ب) با LLM از توضیحات محصول ویژگی استخراج کنی (قابل اتوماسیون)
+مشکل دوم — Attributes محصول از کجا می‌آید؟
+در engine.py:371-374 از فایل items_ins/ خوانده می‌شود که با TF-IDF از متن محصول استخراج شده. برای دیجی‌کالا باید همین pipeline را اجرا کنی.
+مشکل سوم — مقایسه متنی به فارسی:
+در goal.py:199-203:
+g_attr in purchased_product['Title'].lower()
+g_attr in ' '.join(purchased_product['BulletPoints']).lower()
+این string matching ساده برای فارسی کار می‌کند — اما lower() فارسی بی‌معنی است. مشکل اصلی‌تر r_type است که از spaCy انگلیسی استفاده می‌کند.
+
+راه‌حل عملی برای دیجی‌کالا
+برای اینکه ارزیابی خودکار داشته باشی، باید این pipeline را بسازی:
+مرحله ۱ — crawl محصولات دیجی‌کالا → JSON با همان ساختار
+مرحله ۲ — تولید items_ins/ (ویژگی‌های هر محصول):
+# به جای TF-IDF، می‌توانی از LLM استفاده کنی:
+prompt = f"ویژگی‌های کلیدی این محصول را استخراج کن:\n{product_description}"
+# خروجی: ["نویزکنسلینگ", "بلوتوث ۵.۰", "باتری ۳۰ ساعته"]
+مرحله ۳ — تولید items_human_ins/ (دستورالعمل‌ها):
+# یا انسانی یا با LLM:
+prompt = f"یک دستورالعمل خرید برای این محصول بنویس:\n{product_name}\nویژگی‌ها: {attributes}"
+# خروجی: {"instruction": "دنبال هدفون بی‌سیم با نویزکنسلینگ هستم...",
+#          "instruction_attributes": ["نویزکنسلینگ", "بلوتوث ۵.۰"],
+#          "instruction_options": ["مشکی"]}
+مرحله ۴ — تغییر get_reward() برای فارسی:
+حذف spaCy انگلیسی از r_type یا جایگزینی با hazm
+r_attr و r_price نیاز به تغییر زیادی ندارند
+خلاصه: قسمت ارزیابی خودکار این محیط کاملاً داده‌محور است — نه منطق پیچیده‌ای دارد. اگر داده‌ها را به فرمت درست آماده کنی، بقیه سیستم با تغییرات کمی کار می‌کند.
+
+
+
+هزینه اجرای یک تسک در X-WebAgentBench
+اول: چرا یک تسک ۳۰ سنت شد؟ (مهم‌ترین نکته)
+مشکل از مدل گران نیست، از رشد درجه‌دومِ history است. در model.py:38-39 و حلقه‌ی WebShop_test.py، history هیچ‌وقت کوتاه نمی‌شود — در هر گام، کل تاریخچه‌ی قبلی + observation جدید دوباره به مدل فرستاده می‌شود. observationهای WebShop (صفحه‌ی نتایج با ~۱۰ محصول، یا صفحه‌ی آیتم با توضیحات/ویژگی/نظرات) هرکدام ~۸۰۰ تا ۲۰۰۰ توکن‌اند.
+پس اگر تسکی ۱۰ گام طول بکشد، توکن ورودی تجمعی این‌طور می‌شود:
+با نرخ GPT-4o ($۲.۵۰ ورودی / $۱۰ خروجی به ازای هر ۱M): ۱۰۰٬۰۰۰ × ۲.۵۰/۱M ≈ $۰.۲۵ ورودی + ~$۰.۰۰۶ خروجی ≈ ~$۰.۲۶. این دقیقاً همان ۳۰ سنتی است که دیدی. پس عدد تو منطقی و قابل‌بازتولید است، نه یک ناهنجاری.
+برآورد هزینه‌ی هر تسک
+نکته‌ی مهم اصطلاحی: در این مخزن چیزی به اسم متد جدای «ReAct» وجود ندارد. خودِ متد direct همان ReAct است (فرمت خروجی Thought: ... / Action: ... در WebShop_prompt.py:94-96). تفاوت واقعی هزینه بین متدهاست:
+direct — یک فراخوانی LLM در هر گام (ReAct تک‌زبانه)
+clp_en — دو فراخوانی LLM در هر گام (مرحله‌ی فهم + مرحله‌ی استدلال، WebShop_test.py:383-385) ≈ ~۲ برابر هزینه
+translate_en — مثل direct از نظر LLM، ترجمه از کتابخانه‌ی رایگان GoogleTranslator است (هزینه‌ی API ندارد، فقط کندتر)
+میانگین هر تسک (فرض ۵–۱۰ گام، با احتساب رشد تجمعی):
+(نرخ‌ها: GPT-4o $۲.۵۰/$۱۰، GPT-4o-mini $۰.۱۵/$۰.۶۰، DeepSeek-chat $۰.۱۴/$۰.۲۸ به ازای ۱M ورودی/خروجی.)
+برآورد یک ران کامل بنچمارک
+پیش‌فرض --test_n در main.py:16 برابر ۲۰۰ تسک در هر زبان است، و ۱۴ زبان (به‌جز en). یعنی ۲٬۸۰۰ تسک برای پوشش کامل.
+جمع‌بندی و توصیه
+۱. GPT-4o برای این کار گران و اتلاف‌گر است؛ هزینه‌ی ۳۰ سنتی تو ربطی به کیفیت ندارد، صرفاً از حجم توکن می‌آید. برای تست‌گرفتن، GPT-4o-mini یا DeepSeek حدود ۱۵ تا ۲۰ برابر ارزان‌تر و برای این تسک‌های ساده‌ی متنی کاملاً کافی‌اند.
+۲. اگر می‌خواهی هزینه‌ی GPT-4o را هم پایین بیاوری بدون عوض‌کردن مدل: یا --test_n را کم کن (مثلاً ۲۰–۵۰ تسک برای آزمایش)، یا history را در model.py کوتاه کن (مثلاً فقط system + N گام آخر را نگه‌دار) — همین تنها تغییر، هزینه‌ی هر تسک را از ~$۰.۳ به ~$۰.۰۵–۰.۱ می‌رساند، چون رشد درجه‌دوم را حذف می‌کند.
+۳. دقت ۰ که گرفتی احتمالاً ربطی به مدل ندارد و از این است که agent نتوانست در سقف limit_re_search_times=3 به محصول درست برسد یا فرمت اکشن را درست تولید نکرد — این جدا از بحث هزینه است و اگر خواستی می‌توانم لاگ همان تسک را بررسی کنم.
+منابع قیمت:
+OpenAI API Pricing — GPT-4o و GPT-4o-mini
+DeepSeek API Pricing — deepseek-chat
+می‌خواهی برایت پچ کوتاه‌سازی history را بنویسم تا هزینه‌ی GPT-4o عملاً یک‌پنجم شود؟
+حالا همه‌چیز دارم. برآورد با مدل‌های ارزان ولی قوی:
+مدل‌های انتخاب‌شده
+(برای مقایسه: GPT-4o که قبلاً تست کردی: $۲.۵۰ / $۱۰.۰۰)
+هزینه‌ی هر تسک (میانگین، با history تجمعی فعلی کد)
+با همان ساختار فعلی — بدون هیچ تغییری در کد — تخمین بر اساس ~۱۰۰٬۰۰۰ توکن ورودی و ~۵۰۰ توکن خروجی در هر تسک متد direct:
+متد clp_en (دو فراخوان در هر گام) هزینه را دو برابر می‌کند.
+هزینه‌ی یک ران کامل بنچمارک (۲۸۰۰ تسک، ۱۴ زبان)
+توصیه
+DeepSeek V4 Flash بهترین گزینه است: ارزان‌ترین با کیفیت reasoning، به علاوه اینکه کدِ model.py قبلاً کلاینت DeepSeek را دارد (خط ۶-۷) — فقط deepseek-chat را به deepseek-v4-flash تغییر می‌دهی و تمام.
+یک هشدار: Gemini 2.5 Flash خروجی گران‌تری دارد ($۲.۵۰/M در مقابل $۰.۲۸ DeepSeek)؛ اگر مدل verbose باشد و توکن خروجی زیاد تولید کند، هزینه‌اش از جدول بالا تجاوز می‌کند.
+منابع:
+BenchLM.ai LLM Pricing
+Cheapest LLM API 2026 — TLDL
+DeepSeek API Pricing
+مدل‌های baseline مطالعه
+مدل‌های تجاری:
+GPT-3.5-turbo (OpenAI)
+GPT-4o (OpenAI)
+مدل‌های متن‌باز (اجرای محلی با GPU):
+Qwen2 (Alibaba) — اجرای محلی
+Mistral (Mistral AI) — اجرای محلی
+Llama3 (Meta) — از طریق DeepInfra API: Llama3-8B/70B و Llama3.1-8B/70B/405B
+مدل‌های اضافه‌شده در کد (به‌نظر آزمایشی بعد از مقاله):
+DeepSeek-reasoner (deepseek-r1)
+QwQ-32B-Preview (از طریق DeepInfra)
+نکته مهم
+مدل‌هایی که در مقاله رسماً با جدول نتایج منتشر شدند همان ۵ تای اول هستند: gpt-3.5-turbo, gpt-4o, qwen2, mistral, llama3. DeepSeek و QwQ بعداً به کد اضافه شده‌اند اما در جداول مقاله‌ی ACL 2025 نیستند.
+مدل‌های baseline مطالعه
+مدل‌های تجاری:
+GPT-3.5-turbo (OpenAI)
+GPT-4o (OpenAI)
+مدل‌های متن‌باز (اجرای محلی با GPU):
+Qwen2 (Alibaba) — اجرای محلی
+Mistral (Mistral AI) — اجرای محلی
+Llama3 (Meta) — از طریق DeepInfra API: Llama3-8B/70B و Llama3.1-8B/70B/405B
+مدل‌های اضافه‌شده در کد (به‌نظر آزمایشی بعد از مقاله):
+DeepSeek-reasoner (deepseek-r1)
+QwQ-32B-Preview (از طریق DeepInfra)
+نکته مهم
+مدل‌هایی که در مقاله رسماً با جدول نتایج منتشر شدند همان ۵ تای اول هستند: gpt-3.5-turbo, gpt-4o, qwen2, mistral, llama3. DeepSeek و QwQ بعداً به کد اضافه شده‌اند اما در جداول مقاله‌ی ACL 2025 نیستند.
+
+
+
+
+تصاویر
+
+تصویر 1- محیط webshop (در بنچمارک x-webagentbench)
