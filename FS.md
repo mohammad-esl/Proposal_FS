@@ -725,13 +725,6 @@ reward ∈ [0.0, 1.0]
 
 <div dir="rtl">
 
-![نمایش متن تفکری که مدل تولید کرده](Images/Picture4.png)
-*تصویر ۴: نمایش متن تفکری که مدل تولید کرده (Thought + Action در گام‌های مختلف)*
-
-</div>
-
-<div dir="rtl">
-
 **نکته کلیدی:** stop sequence هوشمند مدل را وادار می‌کند فقط Thought + Action تولید کند و قبل از Observation متوقف شود. Observation از محیط واقعی می‌آید، نه از توهم مدل — این همان چیزی است که ReAct را «grounded» و ضد-hallucination می‌کند.
 
 در مقایسه با **CLP (Cross-Lingual Prompting)** که در X-WebAgentBench بهترین نتیجه را داشت، ReAct ساده‌تر و ارزان‌تر است:
