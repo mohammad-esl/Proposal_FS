@@ -84,9 +84,9 @@
 
 </div>
 
-<figure align="center">
+<figure align="center" style="text-align:center">
 <img src="Images/Picture5.png" alt="نحوه اجرای آزمایش">
-<figcaption>تصویر ۵: نحوه اجرای آزمایش — ترمینال سمت چپ محیط WebShop را روی پورت ۳۰۰۰ آماده می‌کند، ترمینال سمت راست کدهای evaluation را اجرا می‌کند</figcaption>
+<figcaption dir="rtl" style="text-align:center">تصویر ۵: نحوه اجرای آزمایش — ترمینال سمت چپ محیط WebShop را روی پورت ۳۰۰۰ آماده می‌کند، ترمینال سمت راست کدهای evaluation را اجرا می‌کند</figcaption>
 </figure>
 
 ---
@@ -146,14 +146,14 @@ $$
 
 </div>
 
-<figure align="center">
+<figure align="center" style="text-align:center">
 <img src="Images/Picture3.png" alt="هزینه انجام یک تسک با GPT-4o از طریق GapGPT">
-<figcaption>تصویر ۳: هزینه انجام یک تسک با GPT-4o از طریق GapGPT</figcaption>
+<figcaption dir="rtl" style="text-align:center">تصویر ۳: هزینه انجام یک تسک با GPT-4o از طریق GapGPT</figcaption>
 </figure>
 
-<figure align="center">
+<figure align="center" style="text-align:center">
 <img src="Images/Picture4.png" alt="نمایش متن تفکری که مدل تولید کرده">
-<figcaption>تصویر ۴: نمایش متن تفکری که مدل تولید کرده (Thought + Action در گام‌های مختلف)</figcaption>
+<figcaption dir="rtl" style="text-align:center">تصویر ۴: نمایش متن تفکری که مدل تولید کرده (Thought + Action در گام‌های مختلف)</figcaption>
 </figure>
 
 ---
@@ -365,14 +365,14 @@ Price: $39.9
 [Buy Now]
 ```
 
-<figure align="center">
+<figure align="center" style="text-align:center">
 <img src="Images/Picture1.png" alt="محیط WebShop در بنچمارک X-WebAgentBench — صفحه شروع">
-<figcaption>تصویر ۱: محیط WebShop در بنچمارک X-WebAgentBench — صفحه شروع</figcaption>
+<figcaption dir="rtl" style="text-align:center">تصویر ۱: محیط WebShop در بنچمارک X-WebAgentBench — صفحه شروع</figcaption>
 </figure>
 
-<figure align="center">
+<figure align="center" style="text-align:center">
 <img src="Images/Picture2.png" alt="نتیجه سرچ در محیط WebShop">
-<figcaption>تصویر ۲: نتیجه سرچ در محیط WebShop</figcaption>
+<figcaption dir="rtl" style="text-align:center">تصویر ۲: نتیجه سرچ در محیط WebShop</figcaption>
 </figure>
 
 <div dir="rtl">
@@ -977,9 +977,9 @@ step 10:  ~20,000 input tokens
 total:    ~100,000 input tokens
 ```
 
-<figure align="center">
+<figure align="center" style="text-align:center">
 <img src="Images/Picture3.png" alt="هزینه انجام یک تسک با GPT-4o از طریق GapGPT">
-<figcaption>تصویر ۳: هزینه انجام یک تسک با GPT-4o از طریق GapGPT</figcaption>
+<figcaption dir="rtl" style="text-align:center">تصویر ۳: هزینه انجام یک تسک با GPT-4o از طریق GapGPT</figcaption>
 </figure>
 
 <div dir="rtl">
