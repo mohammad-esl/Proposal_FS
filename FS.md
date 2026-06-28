@@ -754,19 +754,19 @@ reward ∈ [0.0, 1.0]
 </div>
 
 ```
-observation_raw (از WebShopEnv.py)
+observation_raw  (from WebShopEnv.py)
         ↓
-گام ۱: فیلتر قانون‌محور
-  → نگه داشتن فقط عناصر تعاملی (<a>, <button>, <input>)
-  → الصاق متن مجاور (aria-label, text) به هر عنصر
+Step 1: rule-based filter
+  → keep only interactive elements (<a>, <button>, <input>)
+  → attach surrounding text (aria-label, text) to each element
         ↓
-گام ۲: تولید تابع امتیازدهی توسط LLM
-  → LLM فقط کلیدواژه‌ها و وزن‌شان را تولید می‌کند
-  → الگوریتم سبک، رتبه‌بندی را انجام می‌دهد
+Step 2: LLM generates scoring function
+  → LLM outputs keywords + weights only
+  → lightweight algorithm handles ranking
         ↓
-گام ۳: انتخاب Top-N (پیش‌فرض N=20)
+Step 3: select Top-N  (default N=20)
         ↓
-observation_pruned  →  به agent اصلی داده می‌شود
+observation_pruned  →  passed to main agent
 ```
 
 <div dir="rtl">
@@ -776,13 +776,13 @@ observation_pruned  →  به agent اصلی داده می‌شود
 </div>
 
 ```
-برای هر عنصر e:
-  برای هر (text, type) در e:
-     β ← نوع attribute (دیداری β₁ > معتبر β₂ > دیگر β₃)
-     برای هر keyword k:
+for each element e:
+  for each (text, type) in e:
+     β ← attribute type  (visual β₁ > semantic β₂ > other β₃)
+     for each keyword k:
         α ← exact? α₁ : phrase? α₂ : word? α₃ : fuzzy? α₄ : 0
-        if α > 0: S[e] += W[k] × α × β
-انتخاب Top-N عنصر با بالاترین S[e]
+        if α > 0:  S[e] += W[k] × α × β
+select Top-N elements with highest S[e]
 ```
 
 <div dir="rtl">
@@ -810,17 +810,17 @@ observation_pruned  →  به agent اصلی داده می‌شود
 </div>
 
 ```
-[items_human_ins_fa] → هدف تعریف می‌شود (دستور فارسی + محصول مرجع)
+[items_human_ins_fa]  →  goal is defined (Persian instruction + reference product)
         ↓
-عامل دستورالعمل را می‌بیند ("به دنبال کفش هایکینگ ضدآب سایز ۴۲ هستم")
+agent receives instruction  ("به دنبال کفش هایکینگ ضدآب سایز ۴۲ هستم")
         ↓
-عامل در محیط Flask جستجو/کلیک می‌کند
+agent searches / clicks inside Flask environment
         ↓
-عامل click[Buy Now] می‌زند
+agent executes  click[Buy Now]
         ↓
-محصول خریداری‌شده vs هدف → get_reward() محاسبه می‌شود
+purchased product  vs  goal  →  get_reward()  is computed
         ↓
-امتیاز بین 0.0 تا 1.0
+score  ∈  [0.0, 1.0]
 ```
 
 <h3 dir="rtl">۷.۲ معیارهای ارزیابی</h3>
@@ -960,12 +960,12 @@ $$r = r_{type} \times \frac{|U_{att} \cap Y_{att}| + |U_{opt} \cap Y_{opt}| + \m
 </div>
 
 ```
-گام ۱:  ~2,000 توکن ورودی
-گام ۲:  ~4,000 توکن ورودی
+step  1:  ~2,000  input tokens
+step  2:  ~4,000  input tokens
 ...
-گام ۱۰: ~20,000 توکن ورودی
-─────────────────────────
-مجموع:  ~100,000 توکن ورودی
+step 10:  ~20,000 input tokens
+─────────────────────────────
+total:    ~100,000 input tokens
 ```
 
 > **تصویر ۳:** هزینه انجام یک تسک با GPT-4o
@@ -1118,17 +1118,17 @@ $$r = r_{type} \times \frac{|U_{att} \cap Y_{att}| + |U_{opt} \cap Y_{opt}| + \m
 </div>
 
 ```python
-# مرحله ۱ — crawl محصولات دیجی‌کالا → JSON با همان ساختار WebShop
+# step 1 — crawl Digikala products → JSON in the same WebShop schema
 
-# مرحله ۲ — تولید items_ins/ با LLM (جایگزین TF-IDF انگلیسی):
-prompt = f"ویژگی‌های کلیدی این محصول را استخراج کن:\n{product_description}"
-# خروجی: ["نویزکنسلینگ", "بلوتوث ۵.۰", "باتری ۳۰ ساعته"]
+# step 2 — generate items_ins/ with LLM (replaces English TF-IDF):
+prompt = f"Extract key features of this product:\n{product_description}"
+# output: ["noise cancelling", "bluetooth 5.0", "30h battery"]
 
-# مرحله ۳ — تولید items_human_ins/ (دستورالعمل‌ها):
-prompt = f"یک دستورالعمل خرید برای این محصول بنویس:\n{product_name}\nویژگی‌ها: {attributes}"
+# step 3 — generate items_human_ins/ (instructions):
+prompt = f"Write a purchase instruction for this product:\n{product_name}\nFeatures: {attributes}"
 
-# مرحله ۴ — تغییر get_reward() برای فارسی:
-# حذف spaCy انگلیسی از r_type → جایگزینی با hazm
+# step 4 — adapt get_reward() for Persian:
+# remove English spaCy from r_type → replace with hazm
 ```
 
 <div dir="rtl">
