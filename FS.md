@@ -968,7 +968,12 @@ step 10:  ~20,000 input tokens
 total:    ~100,000 input tokens
 ```
 
-> **تصویر ۳:** هزینه انجام یک تسک با GPT-4o
+<div dir="rtl">
+
+![هزینه انجام یک تسک با GPT-4o از طریق GapGPT](Images/Picture3.png)
+*تصویر ۳: هزینه انجام یک تسک با GPT-4o از طریق GapGPT*
+
+</div>
 
 <div dir="rtl">
 
