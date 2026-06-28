@@ -577,7 +577,7 @@ WebShop یک محیط کنترل‌شده است. HTML آن بسیار کم‌ح
 
 **در WebShop (Yao et al. 2022):** سه baseline معرفی شد:
 - IL (Imitation Learning) روی trajectory‌های انسانی
-- IL + RL (تقویتی) پس از IL
+- IL + RL پس از IL
 - ReAct با few-shot prompting — بدون آموزش
 
 **در X-WebAgentBench:** عامل پایه **BaseAgent** نام دارد و برگرفته از AgentBench (Liu et al., 2024) است. پنج مدل رسمی ارزیابی شده‌اند:
