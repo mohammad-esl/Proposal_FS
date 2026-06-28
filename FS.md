@@ -639,13 +639,13 @@ WebShop یک محیط کنترل‌شده است. HTML آن بسیار کم‌ح
 </div>
 
 ```
-Flask server  (محیط خرید — روی localhost اجرا می‌شود)
-       ↑ HTTP requests
-WebShopEnv.py  ←  واسط Python بین agent و سرور
-       ↑ Python function call
-WebShop_test.py  ←  حلقه‌ی ارزیابی (n تسک اجرا می‌کند)
-       ↑ function call
-model.py / my_agent.py  ←  اینجا agent سفارشی قرار می‌گیرد
+model.py / my_agent.py      ← custom agent goes here
+       ↓ function call
+WebShop_test.py             ← evaluation loop (runs n tasks)
+       ↓ Python function call
+WebShopEnv.py               ← Python interface between agent and server
+       ↓ HTTP requests
+Flask server                ← shopping environment on localhost
 ```
 
 <div dir="rtl">
