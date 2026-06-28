@@ -87,6 +87,7 @@
 <div dir="rtl">
 
 ![نحوه اجرای آزمایش — ترمینال سمت چپ محیط را روی پورت ۳۰۰۰ راه‌اندازی می‌کند و ترمینال سمت راست کدهای ارزیابی را اجرا می‌کند](Images/Picture5.png)
+<br>
 *تصویر ۵: نحوه اجرای آزمایش — ترمینال سمت چپ محیط WebShop را روی پورت ۳۰۰۰ آماده می‌کند، ترمینال سمت راست کدهای evaluation را اجرا می‌کند*
 
 </div>
@@ -151,6 +152,7 @@ $$
 <div dir="rtl">
 
 ![هزینه انجام یک تسک با GPT-4o از طریق GapGPT](Images/Picture3.png)
+<br>
 *تصویر ۳: هزینه انجام یک تسک با GPT-4o از طریق GapGPT*
 
 </div>
@@ -158,6 +160,7 @@ $$
 <div dir="rtl">
 
 ![نمایش متن تفکری که مدل تولید کرده](Images/Picture4.png)
+<br>
 *تصویر ۴: نمایش متن تفکری که مدل تولید کرده (Thought + Action در گام‌های مختلف)*
 
 </div>
@@ -374,6 +377,7 @@ Price: $39.9
 <div dir="rtl">
 
 ![محیط WebShop در بنچمارک X-WebAgentBench — صفحه شروع](Images/Picture1.png)
+<br>
 *تصویر ۱: محیط WebShop در بنچمارک X-WebAgentBench — صفحه شروع*
 
 </div>
@@ -381,6 +385,7 @@ Price: $39.9
 <div dir="rtl">
 
 ![نتیجه سرچ در محیط WebShop](Images/Picture2.png)
+<br>
 *تصویر ۲: نتیجه سرچ در محیط WebShop*
 
 </div>
@@ -990,6 +995,7 @@ total:    ~100,000 input tokens
 <div dir="rtl">
 
 ![هزینه انجام یک تسک با GPT-4o از طریق GapGPT](Images/Picture3.png)
+<br>
 *تصویر ۳: هزینه انجام یک تسک با GPT-4o از طریق GapGPT*
 
 </div>
