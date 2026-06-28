@@ -1,35 +1,3 @@
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-
-<style>
-  body, .markdown-body {
-    font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.9;
-    color: #1a1a2e;
-  }
-  [dir="rtl"], div[dir="rtl"] {
-    font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.9;
-    text-align: justify;
-  }
-  h1, h2, h3, h4 {
-    font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
-    font-weight: 700;
-    color: #16213e;
-  }
-  code, pre, .hljs {
-    font-family: 'JetBrains Mono', 'Courier New', monospace;
-    font-size: 14px;
-  }
-  table {
-    font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
-    font-size: 15px;
-  }
-</style>
-
 <h1 dir="rtl">امکان‌سنجی پروپوزال</h1>
 
 <div dir="rtl">
